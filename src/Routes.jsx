@@ -35,6 +35,7 @@ export default function AppRoutes() {
             <Route path="/" element={<Home />} />
             <Route path="/member-hub-dashboard" element={<MemberHubDashboard />} />
             <Route path="/profile-completion" element={<ProfileCompletion />} />
+            <Route path="/profile" element={<ProfileCompletion />} />
             <Route path="/login" element={<Login />} />
             <Route path="/curated-design-feed" element={<CuratedDesignFeed />} />
             <Route path="/designer-hub-dashboard" element={<DesignerHubDashboard />} />

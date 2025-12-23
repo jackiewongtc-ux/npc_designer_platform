@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Header } from '../../components/Header';
+import { useAuth } from '../../contexts/AuthContext';
+import { membershipPaymentService } from '../../services/membershipPayment';
 
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import { Checkbox } from '../../components/ui/Checkbox';
 import MembershipTierCard from './components/MembershipTierCard';
 import PasswordStrengthIndicator from './components/PasswordStrengthIndicator';
-import PaymentForm from './components/PaymentForm';
 import CommunityBenefitsPanel from './components/CommunityBenefitsPanel';
 import RegistrationSteps from './components/RegistrationSteps';
+import PaymentForm from './components/PaymentForm';
+
 
 const Register = () => {
   const navigate = useNavigate();
+  const { signUp } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -29,8 +33,7 @@ const Register = () => {
       portfolio: ''
     },
     agreeToTerms: false,
-    agreeToPrivacy: false,
-    paymentData: {}
+    agreeToPrivacy: false
   });
 
   const [errors, setErrors] = useState({});
@@ -139,11 +142,44 @@ const Register = () => {
 
   const handleSubmit = async () => {
     setIsLoading(true);
+    setErrors({});
 
-    setTimeout(() => {
+    try {
+      // Step 1: Create user account
+      const { data: authData, error: signUpError } = await signUp(
+        formData?.email,
+        formData?.password,
+        formData?.username,
+        '' // bio
+      );
+
+      if (signUpError) {
+        throw new Error(signUpError?.message || 'Failed to create account');
+      }
+
+      // Step 2: Create Stripe checkout session for membership
+      const selectedTier = formData?.selectedTier || membershipTiers?.[0];
+      
+      const checkoutData = await membershipPaymentService?.createMembershipCheckout({
+        userId: authData?.user?.id,
+        priceId: selectedTier?.stripePriceId,
+        email: formData?.email
+      });
+
+      // Step 3: Redirect to Stripe checkout
+      if (checkoutData?.url) {
+        window.location.href = checkoutData?.url;
+      } else {
+        throw new Error('Failed to create checkout session');
+      }
+
+    } catch (error) {
+      console.error('Registration error:', error);
+      setErrors({ 
+        submit: error?.message || 'Registration failed. Please try again.' 
+      });
       setIsLoading(false);
-      navigate('/member-hub-dashboard');
-    }, 2000);
+    }
   };
 
   const handleInputChange = (field, value) => {
@@ -180,10 +216,6 @@ const Register = () => {
               Start your journey as a designer or community member today
             </p>
           </div>
-
-          
-
-
 
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
@@ -403,28 +435,39 @@ const Register = () => {
                   </div>
                 )}
 
+                {/* Show submission error if exists */}
+                {errors?.submit && (
+                  <div className="p-4 bg-error/10 border border-error/20 rounded-lg mb-6">
+                    <p className="text-sm text-error">{errors?.submit}</p>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between gap-4 mt-8 pt-6 border-t border-border">
-                  {currentStep > 1 ?
-                  <Button
-                    variant="outline"
-                    onClick={handleBack}
-                    iconName="ChevronLeft"
-                    iconPosition="left">
-
+                  {currentStep > 1 ? (
+                    <Button
+                      variant="outline"
+                      onClick={handleBack}
+                      disabled={isLoading}
+                      iconName="ChevronLeft"
+                      iconPosition="left"
+                    >
                       Back
-                    </Button> :
-
-                  <div />
-                  }
+                    </Button>
+                  ) : (
+                    <div />
+                  )}
 
                   <Button
                     variant="default"
                     onClick={handleNext}
                     loading={isLoading}
                     iconName={currentStep === 3 ? 'Check' : 'ChevronRight'}
-                    iconPosition="right">
-
-                    {currentStep === 3 ? 'Complete Registration' : 'Continue'}
+                    iconPosition="right"
+                  >
+                    {currentStep === 3 ? 
+                      (isLoading ? 'Creating Account...' : 'Complete Registration') : 
+                      'Continue'
+                    }
                   </Button>
                 </div>
 
@@ -447,8 +490,8 @@ const Register = () => {
           </div>
         </div>
       </main>
-    </div>);
-
+    </div>
+  );
 };
 
 export default Register;
