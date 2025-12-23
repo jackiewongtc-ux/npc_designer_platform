@@ -1,0 +1,262 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Primary Colors */
+    --color-primary: #2D3748; /* gray-800 - Deep slate for professionalism */
+    --color-primary-foreground: #FFFFFF; /* white - High contrast for accessibility */
+    
+    /* Secondary Colors */
+    --color-secondary: #4A5568; /* gray-600 - Complementary hierarchy */
+    --color-secondary-foreground: #FFFFFF; /* white - Clear contrast */
+    
+    /* Accent Colors */
+    --color-accent: #3182CE; /* blue-600 - Confident interactive blue */
+    --color-accent-foreground: #FFFFFF; /* white - Strong contrast */
+    
+    /* Background Colors */
+    --color-background: #F7FAFC; /* gray-50 - Clean warm white */
+    --color-foreground: #1A202C; /* gray-900 - Near-black for readability */
+    
+    /* Surface Colors */
+    --color-card: #FFFFFF; /* white - Pure white for elevation */
+    --color-card-foreground: #1A202C; /* gray-900 - Primary text on cards */
+    --color-popover: #FFFFFF; /* white - Clean popover background */
+    --color-popover-foreground: #1A202C; /* gray-900 - Readable popover text */
+    
+    /* Muted Colors */
+    --color-muted: #E2E8F0; /* gray-200 - Subtle backgrounds */
+    --color-muted-foreground: #718096; /* gray-500 - Secondary text */
+    
+    /* Border & Input */
+    --color-border: #E2E8F0; /* gray-200 - Minimal borders */
+    --color-input: #E2E8F0; /* gray-200 - Form input borders */
+    --color-ring: #3182CE; /* blue-600 - Focus ring color */
+    
+    /* Semantic Colors */
+    --color-success: #38A169; /* green-600 - Achievement celebrations */
+    --color-success-foreground: #FFFFFF; /* white - Clear success text */
+    
+    --color-warning: #D69E2E; /* yellow-600 - Warm attention amber */
+    --color-warning-foreground: #1A202C; /* gray-900 - Dark text on warning */
+    
+    --color-error: #E53E3E; /* red-600 - Clear professional red */
+    --color-error-foreground: #FFFFFF; /* white - High contrast error text */
+    
+    --color-destructive: #E53E3E; /* red-600 - Destructive actions */
+    --color-destructive-foreground: #FFFFFF; /* white - Clear destructive text */
+    
+    /* Typography */
+    --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-caption: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-data: 'JetBrains Mono', 'Courier New', monospace;
+    
+    /* Spacing & Layout */
+    --radius: 6px;
+    --header-height: 64px;
+    --spacing-unit: 16px;
+  }
+
+  .dark {
+    /* Primary Colors - Dark Mode */
+    --color-primary: #4A5568; /* gray-600 - Lighter slate for dark backgrounds */
+    --color-primary-foreground: #F7FAFC; /* gray-50 - Light text */
+    
+    /* Secondary Colors - Dark Mode */
+    --color-secondary: #2D3748; /* gray-800 - Darker secondary */
+    --color-secondary-foreground: #F7FAFC; /* gray-50 - Light text */
+    
+    /* Accent Colors - Dark Mode */
+    --color-accent: #63B3ED; /* blue-400 - Brighter blue for visibility */
+    --color-accent-foreground: #1A202C; /* gray-900 - Dark text on bright accent */
+    
+    /* Background Colors - Dark Mode */
+    --color-background: #1A202C; /* gray-900 - Dark background */
+    --color-foreground: #F7FAFC; /* gray-50 - Light foreground text */
+    
+    /* Surface Colors - Dark Mode */
+    --color-card: #2D3748; /* gray-800 - Elevated dark cards */
+    --color-card-foreground: #F7FAFC; /* gray-50 - Light card text */
+    --color-popover: #2D3748; /* gray-800 - Dark popover */
+    --color-popover-foreground: #F7FAFC; /* gray-50 - Light popover text */
+    
+    /* Muted Colors - Dark Mode */
+    --color-muted: #4A5568; /* gray-600 - Muted dark backgrounds */
+    --color-muted-foreground: #A0AEC0; /* gray-400 - Muted light text */
+    
+    /* Border & Input - Dark Mode */
+    --color-border: #4A5568; /* gray-600 - Visible dark borders */
+    --color-input: #4A5568; /* gray-600 - Dark input borders */
+    --color-ring: #63B3ED; /* blue-400 - Bright focus ring */
+    
+    /* Semantic Colors - Dark Mode */
+    --color-success: #48BB78; /* green-500 - Brighter success */
+    --color-success-foreground: #1A202C; /* gray-900 - Dark text on success */
+    
+    --color-warning: #ECC94B; /* yellow-500 - Brighter warning */
+    --color-warning-foreground: #1A202C; /* gray-900 - Dark text on warning */
+    
+    --color-error: #FC8181; /* red-400 - Softer error red */
+    --color-error-foreground: #1A202C; /* gray-900 - Dark text on error */
+    
+    --color-destructive: #FC8181; /* red-400 - Softer destructive */
+    --color-destructive-foreground: #1A202C; /* gray-900 - Dark text on destructive */
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+@layer components {
+  /* Header Navigation Styles */
+  .header-nav {
+    @apply fixed top-0 left-0 right-0 z-[1000] bg-card border-b border-border;
+    height: var(--header-height);
+  }
+
+  .header-container {
+    @apply flex items-center justify-between h-full px-4 lg:px-6 max-w-[1400px] mx-auto;
+  }
+
+  .header-logo {
+    @apply flex items-center gap-3 no-underline;
+  }
+.header-logo-icon  {
+    @apply w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200;
+  }
+
+  .header-logo-text {
+    @apply text-xl font-semibold text-foreground;
+  }
+
+  .header-nav-items {
+    @apply hidden lg:flex items-center gap-1;
+  }
+.header-nav-link  {
+    @apply px-4 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200 no-underline;
+  }
+
+  .header-nav-link.active {
+    @apply text-foreground bg-muted;
+  }
+
+  .header-actions {
+    @apply flex items-center gap-3;
+  }
+.header-mobile-toggle  {
+    @apply lg:hidden p-2 rounded-md transition-colors duration-200;
+  }
+
+  /* Mobile Menu Styles */
+.mobile-menu-overlay  {
+    @apply fixed inset-0 backdrop-blur-sm z-[1100] lg:hidden;
+    animation: fadeIn 200ms ease-out;
+  }
+
+  .mobile-menu {
+    @apply fixed top-0 right-0 bottom-0 w-[280px] bg-card border-l border-border z-[1200] lg:hidden overflow-y-auto;
+    animation: slideInRight 300ms ease-in-out;
+  }
+
+  .mobile-menu-header {
+    @apply flex items-center justify-between p-4 border-b border-border;
+  }
+.mobile-menu-close  {
+    @apply p-2 rounded-md transition-colors duration-200;
+  }
+
+  .mobile-menu-nav {
+    @apply flex flex-col p-4 gap-2;
+  }
+.mobile-menu-link  {
+    @apply px-4 py-3 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200 no-underline;
+  }
+
+  .mobile-menu-link.active {
+    @apply text-foreground bg-muted;
+  }
+
+  /* Notification Badge */
+  .notification-badge {
+    @apply absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-error text-error-foreground text-xs font-medium flex items-center justify-center;
+    animation: scaleIn 200ms ease-out;
+  }
+
+  /* Progress Indicator */
+.progress-indicator  {
+    @apply flex items-center gap-2 px-3 py-2 rounded-md;
+  }
+
+  .progress-bar {
+    @apply h-1.5 bg-muted rounded-full overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply h-full bg-accent transition-all duration-300 ease-out;
+  }
+
+  .progress-text {
+    @apply text-xs font-medium text-muted-foreground;
+  }
+
+  /* Admin Badge */
+.admin-badge  {
+    @apply inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-warning border;
+  }
+
+  /* Main Content Layout */
+  .main-content {
+    @apply pt-[calc(var(--header-height)+var(--spacing-unit))] px-4 lg:px-6 max-w-[1400px] mx-auto;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      transform: scale(0);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
