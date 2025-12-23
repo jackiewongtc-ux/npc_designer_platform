@@ -62,85 +62,134 @@ serve(async (req) => {
       case 'checkout.session.completed': {
         const session = event?.data?.object
 
-        // Extract metadata
-        const {
-          design_id,
-          design_title,
-          size,
-          quantity,
-          user_id,
-          tier1_price
-        } = session?.metadata
+        // CRITICAL FIX: Determine if this is a membership payment or pre-order
+        const paymentType = session?.metadata?.payment_type || 'preorder';
+        
+        if (paymentType === 'membership') {
+          // Handle membership signup payment
+          const userId = session?.metadata?.user_id;
+          
+          if (!userId) {
+            console.error('Missing user_id in membership payment metadata');
+            return new Response(
+              JSON.stringify({ error: 'Missing user_id' }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
 
-        // Get payment intent details
-        const paymentIntentId = session?.payment_intent
+          // Update user_profiles to set is_member = true
+          const { error: updateUserError } = await supabaseClient
+            .from('user_profiles')
+            .update({ 
+              is_member: true,
+              membership_signup_date: new Date().toISOString(),
+              stripe_customer_id: session.customer,
+              stripe_subscription_id: session.subscription
+            })
+            .eq('id', userId);
 
-        // Calculate amounts
-        const quantityNum = parseInt(quantity) || 1
-        const tier1PriceNum = parseFloat(tier1_price) || 0
-        const totalAmount = tier1PriceNum * quantityNum
+          if (updateUserError) {
+            console.error('Error updating user membership status:', updateUserError);
+            return new Response(
+              JSON.stringify({ error: 'Failed to update membership status' }),
+              { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
 
-        // Get shipping address from session
-        const shippingAddress = session?.shipping_details?.address ? {
-          line1: session?.shipping_details?.address?.line1,
-          line2: session?.shipping_details?.address?.line2,
-          city: session?.shipping_details?.address?.city,
-          state: session?.shipping_details?.address?.state,
-          postal_code: session?.shipping_details?.address?.postal_code,
-          country: session?.shipping_details?.address?.country
-        } : null
+          // Create membership_signups record
+          const { error: membershipError } = await supabaseClient
+            .from('membership_signups')
+            .insert({
+              user_id: userId,
+              signup_fee_paid: true
+            });
 
-        // Create pre-order record
-        const { data: preOrder, error: preOrderError } = await supabaseClient?.from('pre_orders')?.insert({
-            design_id: design_id,
-            user_id: user_id,
-            size: size,
-            quantity: quantityNum,
-            amount_paid: tier1PriceNum,
-            total_amount: totalAmount,
-            status: 'charged',
-            stripe_payment_intent_id: paymentIntentId,
-            shipping_address: shippingAddress ? JSON.stringify(shippingAddress) : null
-          })?.select()?.single()
+          if (membershipError) {
+            console.error('Error creating membership signup record:', membershipError);
+          }
 
-        if (preOrderError) {
-          console.error('Error creating pre-order:', preOrderError)
-          return new Response(
-            JSON.stringify({ error: 'Failed to create pre-order' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
+          console.log('Membership activated for user:', userId);
+        } else {
+          // Handle pre-order payment (existing code)
+          const {
+            design_id,
+            design_title,
+            size,
+            quantity,
+            user_id,
+            tier1_price
+          } = session?.metadata
 
-        console.log('Pre-order created:', preOrder?.id)
+          // Get payment intent details
+          const paymentIntentId = session?.payment_intent
 
-        // After successful checkout processing, queue email notification
-        if (event.type === 'checkout.session.completed') {
-          // Get design details for email
-          const { data: designData } = await supabaseClient
-            .from('design_submissions')
-            .select('id, title')
-            .eq('id', design_id)
-            .single();
+          // Calculate amounts
+          const quantityNum = parseInt(quantity) || 1
+          const tier1PriceNum = parseFloat(tier1_price) || 0
+          const totalAmount = tier1PriceNum * quantityNum
 
-          // Get current preorder count
-          const { count: preorderCount } = await supabaseClient
-            .from('pre_orders')
-            .select('id', { count: 'exact', head: true })
-            .eq('design_id', design_id)
-            .eq('status', 'charged');
+          // Get shipping address from session
+          const shippingAddress = session?.shipping_details?.address ? {
+            line1: session?.shipping_details?.address?.line1,
+            line2: session?.shipping_details?.address?.line2,
+            city: session?.shipping_details?.address?.city,
+            state: session?.shipping_details?.address?.state,
+            postal_code: session?.shipping_details?.address?.postal_code,
+            country: session?.shipping_details?.address?.country
+          } : null
 
-          // Queue preorder confirmation email
-          await supabaseClient.rpc('queue_email', {
-            p_user_id: user_id,
-            p_template_type: 'PREORDER_CONFIRMATION',
-            p_template_data: {
-              design_name: designData?.title || 'Your Design',
+          // Create pre-order record
+          const { data: preOrder, error: preOrderError } = await supabaseClient?.from('pre_orders')?.insert({
               design_id: design_id,
-              amount: (session.amount_total / 100).toFixed(2),
-              preorder_count: (preorderCount || 0).toString(),
-              size: session.metadata.size
-            }
-          });
+              user_id: user_id,
+              size: size,
+              quantity: quantityNum,
+              amount_paid: tier1PriceNum,
+              total_amount: totalAmount,
+              status: 'charged',
+              stripe_payment_intent_id: paymentIntentId,
+              shipping_address: shippingAddress ? JSON.stringify(shippingAddress) : null
+            })?.select()?.single()
+
+          if (preOrderError) {
+            console.error('Error creating pre-order:', preOrderError)
+            return new Response(
+              JSON.stringify({ error: 'Failed to create pre-order' }),
+              { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+          }
+
+          console.log('Pre-order created:', preOrder?.id)
+
+          // After successful checkout processing, queue email notification
+          if (event.type === 'checkout.session.completed') {
+            // Get design details for email
+            const { data: designData } = await supabaseClient
+              .from('design_submissions')
+              .select('id, title')
+              .eq('id', design_id)
+              .single();
+
+            // Get current preorder count
+            const { count: preorderCount } = await supabaseClient
+              .from('pre_orders')
+              .select('id', { count: 'exact', head: true })
+              .eq('design_id', design_id)
+              .eq('status', 'charged');
+
+            // Queue preorder confirmation email
+            await supabaseClient.rpc('queue_email', {
+              p_user_id: user_id,
+              p_template_type: 'PREORDER_CONFIRMATION',
+              p_template_data: {
+                design_name: designData?.title || 'Your Design',
+                design_id: design_id,
+                amount: (session.amount_total / 100).toFixed(2),
+                preorder_count: (preorderCount || 0).toString(),
+                size: session.metadata.size
+              }
+            });
+          }
         }
 
         break

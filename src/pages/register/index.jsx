@@ -35,56 +35,27 @@ const Register = () => {
 
   const [errors, setErrors] = useState({});
 
+  // CRITICAL FIX: Single membership tier only
   const membershipTiers = [
-  {
-    name: 'Bronze',
-    subtitle: 'Perfect for beginners',
-    price: 9.99,
-    annualSavings: 23.88,
-    popular: false,
-    benefits: [
-    'Submit up to 3 design challenges per month',
-    'Vote on community designs',
-    'Access to basic design tools',
-    'Community forum access',
-    'Monthly newsletter']
-
-  },
-  {
-    name: 'Silver',
-    subtitle: 'Most popular choice',
-    price: 19.99,
-    annualSavings: 47.88,
-    popular: true,
-    benefits: [
-    'Submit up to 10 design challenges per month',
-    'Priority voting weight (2x)',
-    'AI design enhancement (5 uses/month)',
-    'Early access to new features',
-    'Designer portfolio showcase',
-    'Exclusive community events',
-    'Advanced analytics dashboard']
-
-  },
-  {
-    name: 'Gold',
-    subtitle: 'For serious designers',
-    price: 39.99,
-    annualSavings: 95.88,
-    popular: false,
-    benefits: [
-    'Unlimited design challenge submissions',
-    'Premium voting weight (3x)',
-    'Unlimited AI design enhancements',
-    'Featured designer status',
-    'Direct supplier connections',
-    'Quarterly bonus eligibility',
-    'Personal design consultant',
-    'VIP community events',
-    'Custom badge creation']
-
-  }];
-
+    {
+      name: 'NPC Membership',
+      subtitle: 'Auto-renews annually. Cancel anytime.',
+      price: 10.00,
+      currency: 'SGD',
+      billingCycle: 'year',
+      popular: true,
+      stripePriceId: import.meta.env?.VITE_STRIPE_MEMBERSHIP_PRICE_ID, // Add this to .env
+      benefits: [
+        'Access to exclusive design challenges',
+        'Vote on community designs',
+        'Submit your own designs',
+        'Connect with fellow designers',
+        'Annual membership benefits',
+        'Priority support',
+        'Community events access'
+      ]
+    }
+  ];
 
   const validateStep1 = () => {
     const newErrors = {};
@@ -118,9 +89,9 @@ const Register = () => {
   };
 
   const validateStep2 = () => {
+    // Auto-select the only tier if not already selected
     if (!formData?.selectedTier) {
-      setErrors({ tier: 'Please select a membership tier' });
-      return false;
+      setFormData(prev => ({ ...prev, selectedTier: membershipTiers?.[0] }));
     }
     setErrors({});
     return true;
@@ -321,38 +292,50 @@ const Register = () => {
                   </div>
                 }
 
-                {currentStep === 2 &&
-                <div className="space-y-6">
+                {currentStep === 2 && (
+                  <div className="space-y-6">
                     <div>
                       <h2 className="text-xl font-semibold text-foreground mb-4">
-                        Choose Your Membership Tier
+                        Membership Plan
                       </h2>
                       <p className="text-sm text-muted-foreground mb-6">
-                        Select the plan that best fits your creative goals
+                        Join our creative community with annual membership
                       </p>
                     </div>
 
-                    {errors?.tier &&
-                  <div className="p-4 bg-error/10 border border-error/20 rounded-lg">
+                    {errors?.tier && (
+                      <div className="p-4 bg-error/10 border border-error/20 rounded-lg">
                         <p className="text-sm text-error">{errors?.tier}</p>
                       </div>
-                  }
-
-                    <div className="grid gap-6">
-                      {membershipTiers?.map((tier) =>
-                    <MembershipTierCard
-                      key={tier?.name}
-                      tier={tier}
-                      isSelected={formData?.selectedTier?.name === tier?.name}
-                      onSelect={() => handleTierSelect(tier)} />
-
                     )}
+
+                    {/* Single tier display */}
+                    <div className="max-w-2xl mx-auto">
+                      {membershipTiers?.map((tier) => (
+                        <MembershipTierCard
+                          key={tier?.name}
+                          tier={tier}
+                          isSelected={formData?.selectedTier?.name === tier?.name}
+                          onSelect={() => handleTierSelect(tier)}
+                        />
+                      ))}
+                    </div>
+
+                    <div className="bg-muted/30 border border-border rounded-lg p-4 mt-6">
+                      <h3 className="text-sm font-semibold text-foreground mb-2">
+                        What You Get:
+                      </h3>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• SGD 10 per year (auto-renews annually)</li>
+                        <li>• Full access to community features</li>
+                        <li>• Cancel anytime from your account settings</li>
+                      </ul>
                     </div>
                   </div>
-                }
+                )}
 
-                {currentStep === 3 &&
-                <div className="space-y-6">
+                {currentStep === 3 && (
+                  <div className="space-y-6">
                     <div>
                       <h2 className="text-xl font-semibold text-foreground mb-4">
                         Payment Information
@@ -362,26 +345,26 @@ const Register = () => {
                       </p>
                     </div>
 
-                    {formData?.selectedTier &&
-                  <div className="p-4 bg-muted/50 border border-border rounded-lg">
+                    {formData?.selectedTier && (
+                      <div className="p-4 bg-muted/50 border border-border rounded-lg">
                         <div className="flex items-center justify-between">
                           <div>
                             <h3 className="text-sm font-semibold text-foreground">
-                              {formData?.selectedTier?.name} Membership
+                              {formData?.selectedTier?.name}
                             </h3>
                             <p className="text-xs text-muted-foreground">
-                              Billed monthly
+                              Billed annually • Auto-renews • Cancel anytime
                             </p>
                           </div>
                           <div className="text-right">
                             <p className="text-lg font-bold text-foreground">
-                              ${formData?.selectedTier?.price}
+                              SGD {formData?.selectedTier?.price?.toFixed(2)}
                             </p>
-                            <p className="text-xs text-muted-foreground">per month</p>
+                            <p className="text-xs text-muted-foreground">per year</p>
                           </div>
                         </div>
                       </div>
-                  }
+                    )}
 
                     <PaymentForm onPaymentDataChange={handlePaymentDataChange} />
 
@@ -418,7 +401,7 @@ const Register = () => {
 
                     </div>
                   </div>
-                }
+                )}
 
                 <div className="flex items-center justify-between gap-4 mt-8 pt-6 border-t border-border">
                   {currentStep > 1 ?

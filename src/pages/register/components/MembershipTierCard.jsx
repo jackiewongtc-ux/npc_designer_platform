@@ -1,74 +1,51 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
-import Button from '../../../components/ui/Button';
+
+import { cn } from '../../../lib/utils';
 
 const MembershipTierCard = ({ 
   tier, 
   isSelected, 
   onSelect 
 }) => {
-  const tierStyles = {
-    Bronze: {
-      gradient: 'from-amber-600/10 to-amber-800/10',
-      border: 'border-amber-600/30',
-      icon: 'Award',
-      iconColor: 'var(--color-warning)'
-    },
-    Silver: {
-      gradient: 'from-gray-400/10 to-gray-600/10',
-      border: 'border-gray-400/30',
-      icon: 'Star',
-      iconColor: 'var(--color-muted-foreground)'
-    },
-    Gold: {
-      gradient: 'from-yellow-500/10 to-yellow-700/10',
-      border: 'border-yellow-500/30',
-      icon: 'Crown',
-      iconColor: 'var(--color-accent)'
-    }
-  };
-
-  const style = tierStyles?.[tier?.name] || tierStyles?.Bronze;
-
   return (
-    <div 
-      className={`relative p-6 rounded-lg border-2 transition-all duration-300 cursor-pointer ${
-        isSelected 
-          ? `${style?.border} bg-gradient-to-br ${style?.gradient}` 
-          : 'border-border bg-card hover:border-muted-foreground/30'
-      }`}
+    <div
       onClick={onSelect}
+      className={cn(
+        'relative cursor-pointer rounded-lg border-2 p-6 transition-all',
+        isSelected
+          ? 'border-accent bg-accent/5 shadow-lg'
+          : 'border-border bg-card hover:border-accent/50 hover:shadow-md'
+      )}
     >
       {tier?.popular && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-accent text-accent-foreground text-xs font-semibold rounded-full">
-          Most Popular
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <span className="inline-flex items-center rounded-full bg-accent px-4 py-1 text-xs font-semibold text-white">
+            Recommended
+          </span>
         </div>
       )}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg ${isSelected ? 'bg-background/50' : 'bg-muted/50'}`}>
-            <Icon name={style?.icon} size={24} color={style?.iconColor} />
+
+      <div className="text-center">
+        <h3 className="text-2xl font-bold text-foreground">{tier?.name}</h3>
+        <p className="mt-2 text-sm text-muted-foreground">{tier?.subtitle}</p>
+        
+        <div className="mt-4">
+          <div className="flex items-baseline justify-center gap-1">
+            <span className="text-3xl font-bold text-foreground">
+              {tier?.currency || '$'}{tier?.price?.toFixed(2)}
+            </span>
+            <span className="text-muted-foreground">/{tier?.billingCycle || 'month'}</span>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">{tier?.name}</h3>
-            <p className="text-sm text-muted-foreground">{tier?.subtitle}</p>
-          </div>
+          
+          {tier?.annualSavings && (
+            <p className="mt-2 text-sm text-accent">
+              Save ${tier?.annualSavings?.toFixed(2)} annually
+            </p>
+          )}
         </div>
-        {isSelected && (
-          <div className="p-1 rounded-full bg-accent">
-            <Icon name="Check" size={16} color="white" />
-          </div>
-        )}
       </div>
-      <div className="mb-4">
-        <div className="flex items-baseline gap-1">
-          <span className="text-3xl font-bold text-foreground">${tier?.price}</span>
-          <span className="text-sm text-muted-foreground">/month</span>
-        </div>
-        {tier?.annualSavings && (
-          <p className="text-xs text-success mt-1">Save ${tier?.annualSavings} with annual billing</p>
-        )}
-      </div>
+
       <ul className="space-y-3 mb-6">
         {tier?.benefits?.map((benefit, index) => (
           <li key={index} className="flex items-start gap-2">
@@ -77,13 +54,20 @@ const MembershipTierCard = ({
           </li>
         ))}
       </ul>
-      <Button 
-        variant={isSelected ? "default" : "outline"} 
-        fullWidth
-        onClick={onSelect}
-      >
-        {isSelected ? 'Selected' : 'Select Plan'}
-      </Button>
+
+      <div className="mt-6 flex justify-center">
+        <div
+          className={cn(
+            'flex h-6 w-6 items-center justify-center rounded-full border-2',
+            isSelected
+              ? 'border-accent bg-accent' :'border-border bg-background'
+          )}
+        >
+          {isSelected && (
+            <Icon name="Check" className="h-4 w-4 text-white" />
+          )}
+        </div>
+      </div>
     </div>
   );
 };
