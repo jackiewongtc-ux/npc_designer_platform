@@ -145,7 +145,10 @@ const Register = () => {
     setErrors({});
 
     try {
+      console.log('🚀 Registration flow started');
+
       // Step 1: Create user account
+      console.log('📝 Step 1: Creating user account for:', formData?.email);
       const { data: authData, error: signUpError } = await signUp(
         formData?.email,
         formData?.password,
@@ -154,27 +157,55 @@ const Register = () => {
       );
 
       if (signUpError) {
+        console.error('❌ Sign up failed:', signUpError);
         throw new Error(signUpError?.message || 'Failed to create account');
       }
+
+      console.log('✅ User account created successfully:', {
+        userId: authData?.user?.id,
+        email: authData?.user?.email
+      });
 
       // Step 2: Create Stripe checkout session for membership
       const selectedTier = formData?.selectedTier || membershipTiers?.[0];
       
+      console.log('💳 Step 2: Creating Stripe checkout session with:', {
+        userId: authData?.user?.id,
+        priceId: selectedTier?.stripePriceId,
+        email: formData?.email,
+        tierName: selectedTier?.name,
+        tierPrice: selectedTier?.price
+      });
+
       const checkoutData = await membershipPaymentService?.createMembershipCheckout({
         userId: authData?.user?.id,
         priceId: selectedTier?.stripePriceId,
         email: formData?.email
       });
 
+      // CRITICAL DEBUG: Log the complete checkout response
+      console.log('🔍 DEBUG: Checkout session response:', {
+        checkoutData,
+        hasUrl: !!checkoutData?.url,
+        url: checkoutData?.url,
+        fullResponse: checkoutData
+      });
+
       // Step 3: Redirect to Stripe checkout
       if (checkoutData?.url) {
+        console.log('✅ Redirecting to Stripe checkout:', checkoutData?.url);
         window.location.href = checkoutData?.url;
       } else {
-        throw new Error('Failed to create checkout session');
+        console.error('❌ No checkout URL received. Full response:', checkoutData);
+        throw new Error('Failed to create checkout session - no URL returned');
       }
 
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('❌ Registration error occurred:', {
+        message: error?.message,
+        stack: error?.stack,
+        fullError: error
+      });
       setErrors({ 
         submit: error?.message || 'Registration failed. Please try again.' 
       });

@@ -93,6 +93,15 @@ const createMembershipPaymentIntent = async (membershipData, userInfo) => {
  */
 const createMembershipCheckout = async ({ userId, priceId, email }) => {
   try {
+    console.log('🔍 DEBUG: Creating membership checkout with params:', {
+      userId,
+      priceId,
+      email,
+      payment_type: 'membership',
+      successUrl: `${window?.location?.origin}/member-hub-dashboard`,
+      cancelUrl: `${window?.location?.origin}/register`
+    });
+
     const { data, error } = await supabase?.functions?.invoke('create-membership-payment', {
       body: {
         userId,
@@ -104,14 +113,33 @@ const createMembershipCheckout = async ({ userId, priceId, email }) => {
       }
     });
 
+    // CRITICAL DEBUG: Log the complete API response
+    console.log('🔍 DEBUG: API Response from create-membership-payment:', {
+      data,
+      error,
+      hasUrl: !!data?.url,
+      fullResponse: { data, error }
+    });
+
     if (error) {
-      console.error('Error creating membership checkout:', error);
+      console.error('❌ ERROR: Failed to create membership checkout:', error);
       throw new Error(error?.message || 'Failed to create checkout session');
     }
 
+    if (!data?.url) {
+      console.error('❌ ERROR: No checkout URL in response. Full data:', data);
+      throw new Error('No checkout URL returned from API');
+    }
+
+    console.log('✅ SUCCESS: Checkout session created with URL:', data?.url);
+
     return data;
   } catch (error) {
-    console.error('Membership checkout error:', error);
+    console.error('❌ FATAL ERROR in membership checkout:', {
+      message: error?.message,
+      stack: error?.stack,
+      fullError: error
+    });
     throw error;
   }
 };
