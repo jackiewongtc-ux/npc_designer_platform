@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
+import profileService from '../../../services/profileService';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 
@@ -20,9 +21,23 @@ export function LoginForm() {
     setLoading(true);
 
     try {
+      // 1. Log the user in
       await signIn(email, password);
-      navigate('/member-hub-dashboard');
+      
+      // 2. Check their profile status immediately
+      const profile = await profileService?.getCurrentProfile();
+
+      // 3. DECISION: Where should they go?
+      // If they are missing their Instagram handle, send them to the completion page.
+      if (!profile?.igHandle) {
+        navigate('/profile-completion');
+      } else {
+        // If they are fully finished, go to the dashboard.
+        navigate('/member-hub-dashboard');
+      }
+      
     } catch (err) {
+      console.error('Login error:', err);
       setError(err?.message || 'Failed to sign in');
     } finally {
       setLoading(false);
@@ -75,6 +90,7 @@ export function LoginForm() {
           {loading ? 'Signing In...' : 'Sign In'}
         </Button>
       </form>
+
       {/* Demo Credentials Display */}
       <div className="mt-8 p-4 bg-gray-50 border border-gray-200 rounded-lg">
         <p className="text-sm font-semibold text-gray-700 mb-3">Demo Credentials:</p>
@@ -93,6 +109,7 @@ export function LoginForm() {
           </div>
         </div>
       </div>
+
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600">
           Don't have an account?{' '}

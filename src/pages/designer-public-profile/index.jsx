@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { profileService } from '../../services/profileService';
+import profileService from '../../services/profileService';
 import { ProfileHeader } from './components/ProfileHeader';
 import { TierStatusCard } from './components/TierStatusCard';
 import { BadgesShowcase } from './components/BadgesShowcase';

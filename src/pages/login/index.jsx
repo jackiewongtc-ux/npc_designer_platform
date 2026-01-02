@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Header } from '../../components/Header';
 import AuthenticationGuard from '../../components/AuthenticationGuard';
@@ -7,28 +7,37 @@ import SocialLogin from './components/SocialLogin';
 import PlatformShowcase from './components/PlatformShowcase';
 import Button from '../../components/ui/Button';
 import Icon from '../../components/AppIcon';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  // Pulling global auth state to sync the Header and redirects
+  const { user, profile, loading } = useAuth();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('npcUser') || sessionStorage.getItem('npcUser');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
+    // If a user is already logged in and profile data is loaded, 
+    // redirect them away from the login page immediately.
+    if (!loading && user && profile) {
+      if (profile.role === 'admin') {
+        navigate('/admin-challenge-management');
+      } else {
+        // Check for onboarding completion for regular members
+        const hasIg = profile.ig_handle || profile.igHandle;
+        if (!hasIg) {
+          navigate('/profile-completion');
+        } else {
+          navigate('/member-hub-dashboard');
+        }
       }
     }
-  }, []);
-
-  const handleLogin = (userData) => {
-    setUser(userData);
-  };
+  }, [user, profile, loading, navigate]);
 
   return (
-    <AuthenticationGuard user={user} requireAuth={false}>
+    /* Note: We no longer pass the 'user' prop to AuthenticationGuard. 
+       The Guard now pulls 'user' and 'profile' directly from useAuth() 
+       to prevent the "n is not a function" race condition.
+    */
+    <AuthenticationGuard requireAuth={false}>
       <div className="min-h-screen bg-background">
         <Header 
           user={user}
@@ -40,6 +49,7 @@ const Login = () => {
         <main className="main-content">
           <div className="max-w-7xl mx-auto py-8 lg:py-12">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+              
               {/* Login Form Section */}
               <div className="order-2 lg:order-1">
                 <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 lg:p-10 shadow-sm">
@@ -59,7 +69,10 @@ const Login = () => {
                     </div>
                   </div>
 
-                  <LoginForm onLogin={handleLogin} />
+                  {/* We no longer pass handleLogin. The LoginForm should 
+                     trigger Supabase auth, which the AuthContext listens to.
+                  */}
+                  <LoginForm />
 
                   <div className="mt-8">
                     <SocialLogin />
@@ -86,9 +99,9 @@ const Login = () => {
                     <div className="flex items-start gap-3">
                       <Icon name="Info" size={18} color="var(--color-accent)" className="flex-shrink-0 mt-0.5" />
                       <div className="text-xs text-muted-foreground">
-                        <p className="font-medium text-foreground mb-1">Demo Credentials:</p>
-                        <p>User: designer@npcdesigner.com / Design2024!</p>
-                        <p>Admin: admin@npcdesigner.com / Admin2024!</p>
+                        <p className="font-medium text-foreground mb-1">Credentials:</p>
+                        <p>User: designer@npcdesigner.com</p>
+                        <p>Admin: admin@npcdesigner.com</p>
                       </div>
                     </div>
                   </div>
@@ -117,57 +130,27 @@ const Login = () => {
               </div>
             </div>
 
-            {/* Additional Features Section */}
+            {/* Features Section */}
             <div className="mt-12 lg:mt-16">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold text-foreground mb-3">
                   Why Join NPC Designer?
                 </h2>
-                <p className="text-muted-foreground max-w-2xl mx-auto">
-                  Be part of a thriving community where creativity meets opportunity
-                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                  {
-                    icon: 'Zap',
-                    title: 'Fast Track',
-                    description: 'Quick design approval process with community voting',
-                    color: 'var(--color-warning)'
-                  },
-                  {
-                    icon: 'Shield',
-                    title: 'IP Protection',
-                    description: 'Automated copyright scanning and design protection',
-                    color: 'var(--color-success)'
-                  },
-                  {
-                    icon: 'DollarSign',
-                    title: 'Fair Revenue',
-                    description: 'Transparent pricing with designer profit sharing',
-                    color: 'var(--color-accent)'
-                  },
-                  {
-                    icon: 'Globe',
-                    title: 'Global Reach',
-                    description: 'Multi-language support for international designers',
-                    color: 'var(--color-primary)'
-                  }
-                ]?.map((feature, index) => (
-                  <div
-                    key={index}
-                    className="p-6 rounded-xl bg-card border border-border hover:border-accent/30 transition-all duration-200 hover:shadow-md"
-                  >
+                  { icon: 'Zap', title: 'Fast Track', color: 'var(--color-warning)' },
+                  { icon: 'Shield', title: 'IP Protection', color: 'var(--color-success)' },
+                  { icon: 'DollarSign', title: 'Fair Revenue', color: 'var(--color-accent)' },
+                  { icon: 'Globe', title: 'Global Reach', color: 'var(--color-primary)' }
+                ].map((feature, index) => (
+                  <div key={index} className="p-6 rounded-xl bg-card border border-border">
                     <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-4">
-                      <Icon name={feature?.icon} size={24} color={feature?.color} />
+                      <Icon name={feature.icon} size={24} color={feature.color} />
                     </div>
-                    <h3 className="font-semibold text-foreground mb-2">
-                      {feature?.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {feature?.description}
-                    </p>
+                    <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground">Professional designer tools and community support.</p>
                   </div>
                 ))}
               </div>
@@ -175,24 +158,14 @@ const Login = () => {
           </div>
         </main>
 
-        {/* Footer */}
         <footer className="border-t border-border bg-card mt-16">
-          <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-sm text-muted-foreground">
-                © {new Date()?.getFullYear()} NPC Designer Platform. All rights reserved.
-              </div>
-              <div className="flex items-center gap-6">
-                <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Terms
-                </Link>
-                <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Privacy
-                </Link>
-                <Link to="/support" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Support
-                </Link>
-              </div>
+          <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8 flex justify-between">
+            <div className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} NPC Designer Platform.
+            </div>
+            <div className="flex gap-6">
+              <Link to="/terms" className="text-sm text-muted-foreground">Terms</Link>
+              <Link to="/support" className="text-sm text-muted-foreground">Support</Link>
             </div>
           </div>
         </footer>

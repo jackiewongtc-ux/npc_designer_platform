@@ -1,18 +1,18 @@
-import React from "react";
-import Routes from "./Routes";
+import React from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { StripeProvider } from './contexts/StripeContext';
-import ErrorBoundary from './components/ErrorBoundary';
+import AppRoutes from './Routes';
 
 function App() {
   return (
-    <ErrorBoundary>
+    // 1. Router MUST be the outermost wrapper
+    <Router>
+      {/* 2. AuthProvider MUST be inside the Router */}
       <AuthProvider>
-        <StripeProvider>
-          <Routes />
-        </StripeProvider>
+        {/* 3. AppRoutes MUST be inside both */}
+        <AppRoutes />
       </AuthProvider>
-    </ErrorBoundary>
+    </Router>
   );
 }
 
