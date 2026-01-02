@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { Header } from '../../components/Header';
+import Header from '../../components/Header';
 import { Helmet } from 'react-helmet';
 import { Briefcase, TrendingUp, Award, DollarSign, Clock, CheckCircle, AlertCircle, Loader, Target } from 'lucide-react';
 

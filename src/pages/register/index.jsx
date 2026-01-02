@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Header } from '../../components/Header';
+import Header from '../../components/Header';
 import { useAuth } from '../../contexts/AuthContext';
 import { membershipPaymentService } from '../../services/membershipPayment';
 

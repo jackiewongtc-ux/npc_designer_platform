@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Header } from '../../components/Header';
 import AuthenticationGuard from '../../components/AuthenticationGuard';
 import { LoginForm } from './components/LoginForm';
 import SocialLogin from './components/SocialLogin';
@@ -39,15 +38,8 @@ const Login = () => {
     */
     <AuthenticationGuard requireAuth={false}>
       <div className="min-h-screen bg-background">
-        <Header 
-          user={user}
-          notifications={0}
-          expProgress={0}
-          currentTier="Bronze"
-        />
-
         <main className="main-content">
-          <div className="max-w-7xl mx-auto py-8 lg:py-12">
+          <div className="max-w-7xl mx-auto py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
               
               {/* Login Form Section */}
@@ -69,9 +61,7 @@ const Login = () => {
                     </div>
                   </div>
 
-                  {/* We no longer pass handleLogin. The LoginForm should 
-                     trigger Supabase auth, which the AuthContext listens to.
-                  */}
+                  {/* The LoginForm handles the Supabase auth logic */}
                   <LoginForm />
 
                   <div className="mt-8">
@@ -95,6 +85,7 @@ const Login = () => {
                     </div>
                   </div>
 
+                  {/* Demo Credentials Box */}
                   <div className="mt-6 p-4 rounded-lg bg-muted/50 border border-border">
                     <div className="flex items-start gap-3">
                       <Icon name="Info" size={18} color="var(--color-accent)" className="flex-shrink-0 mt-0.5" />
@@ -159,13 +150,13 @@ const Login = () => {
         </main>
 
         <footer className="border-t border-border bg-card mt-16">
-          <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8 flex justify-between">
+          <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} NPC Designer Platform.
             </div>
             <div className="flex gap-6">
-              <Link to="/terms" className="text-sm text-muted-foreground">Terms</Link>
-              <Link to="/support" className="text-sm text-muted-foreground">Support</Link>
+              <Link to="/terms" className="text-sm text-muted-foreground hover:text-accent transition-colors">Terms</Link>
+              <Link to="/support" className="text-sm text-muted-foreground hover:text-accent transition-colors">Support</Link>
             </div>
           </div>
         </footer>

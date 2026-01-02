@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import Button from '../../components/ui/Button';
 import MembershipSignupModal from './components/MembershipSignupModal';
+import Header from '../../components/Header';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -37,46 +38,7 @@ const Home = () => {
       {/* Content */}
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Navigation Bar */}
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        <Header />
 
         {/* Hero Content */}
         <div className="flex-1 flex items-center justify-center px-6">

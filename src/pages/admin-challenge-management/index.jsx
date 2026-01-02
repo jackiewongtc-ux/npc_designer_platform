@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Header } from '../../components/Header';
+import Header from '../../components/Header';
 import AuthenticationGuard from '../../components/AuthenticationGuard';
 import AdminAccessToggle from '../../components/ui/AdminAccessToggle';
 import ChallengeStatsCard from './components/ChallengeStatsCard';

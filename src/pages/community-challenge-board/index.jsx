@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Header } from '../../components/Header';
+import Header from '../../components/Header';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
 import ChallengeCard from './components/ChallengeCard';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
-import { Header } from '../../components/Header';
+import Header from '../../components/Header';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
 import ImageGallery from './components/ImageGallery';
