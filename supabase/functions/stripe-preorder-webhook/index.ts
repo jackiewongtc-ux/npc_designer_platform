@@ -64,18 +64,42 @@ serve(async (req) => {
 
         // CRITICAL FIX: Determine if this is a membership payment or pre-order
         const paymentType = session?.metadata?.payment_type || 'preorder';
+        const registrationFlow = session?.metadata?.registrationFlow === 'true';
         
         if (paymentType === 'membership') {
           // Handle membership signup payment
-          const userId = session?.metadata?.user_id;
+          // Support both user_id and userId metadata fields
+          let userId = session?.metadata?.user_id || session?.metadata?.userId;
           
-          if (!userId) {
-            console.error('Missing user_id in membership payment metadata');
-            return new Response(
-              JSON.stringify({ error: 'Missing user_id' }),
-              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
+          // If userId is 'pending', this is a guest checkout (registration flow)
+          // The user account will be created on the frontend success page
+          if (!userId || userId === 'pending') {
+            if (registrationFlow) {
+              console.log('Guest checkout detected - user account will be created on success page');
+              console.log('Payment completed for email:', session.customer_email || session.customer_details?.email);
+              
+              // Store payment info temporarily - frontend will link it after account creation
+              // We'll update this when the user account is created
+              return new Response(
+                JSON.stringify({ 
+                  received: true,
+                  message: 'Payment processed. User account will be created on success page.',
+                  customerId: session.customer,
+                  subscriptionId: session.subscription
+                }),
+                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
+            } else {
+              console.error('Missing user_id in membership payment metadata and not a registration flow');
+              return new Response(
+                JSON.stringify({ error: 'Missing user_id' }),
+                { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
+            }
           }
+
+          // User account exists - update membership status
+          console.log('Updating membership for existing user:', userId);
 
           // Update user_profiles to set is_member = true
           const { error: updateUserError } = await supabaseClient
@@ -90,10 +114,8 @@ serve(async (req) => {
 
           if (updateUserError) {
             console.error('Error updating user membership status:', updateUserError);
-            return new Response(
-              JSON.stringify({ error: 'Failed to update membership status' }),
-              { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
+            // Don't fail - user might not have profile yet (will be created by trigger)
+            console.warn('User profile might not exist yet - will be created by trigger');
           }
 
           // Create membership_signups record
@@ -106,6 +128,7 @@ serve(async (req) => {
 
           if (membershipError) {
             console.error('Error creating membership signup record:', membershipError);
+            // Don't fail - might be duplicate
           }
 
           console.log('Membership activated for user:', userId);

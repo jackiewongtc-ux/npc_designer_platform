@@ -84,67 +84,6 @@ const createMembershipPaymentIntent = async (membershipData, userInfo) => {
 };
 
 /**
- * Creates a Stripe checkout session for membership payment
- * @param {Object} params - Payment parameters
- * @param {string} params.userId - User ID from Supabase auth
- * @param {string} params.priceId - Stripe Price ID for the membership plan
- * @param {string} params.email - User email
- * @returns {Promise<{url: string}>} - Checkout session URL
- */
-const createMembershipCheckout = async ({ userId, priceId, email }) => {
-  try {
-    console.log('🔍 DEBUG: Creating membership checkout with params:', {
-      userId,
-      priceId,
-      email,
-      payment_type: 'membership',
-      successUrl: `${window?.location?.origin}/member-hub-dashboard`,
-      cancelUrl: `${window?.location?.origin}/register`
-    });
-
-    const { data, error } = await supabase?.functions?.invoke('create-membership-payment', {
-      body: {
-        userId,
-        priceId,
-        email,
-        payment_type: 'membership',
-        successUrl: `${window?.location?.origin}/member-hub-dashboard`,
-        cancelUrl: `${window?.location?.origin}/register`
-      }
-    });
-
-    // CRITICAL DEBUG: Log the complete API response
-    console.log('🔍 DEBUG: API Response from create-membership-payment:', {
-      data,
-      error,
-      hasUrl: !!data?.url,
-      fullResponse: { data, error }
-    });
-
-    if (error) {
-      console.error('❌ ERROR: Failed to create membership checkout:', error);
-      throw new Error(error?.message || 'Failed to create checkout session');
-    }
-
-    if (!data?.url) {
-      console.error('❌ ERROR: No checkout URL in response. Full data:', data);
-      throw new Error('No checkout URL returned from API');
-    }
-
-    console.log('✅ SUCCESS: Checkout session created with URL:', data?.url);
-
-    return data;
-  } catch (error) {
-    console.error('❌ FATAL ERROR in membership checkout:', {
-      message: error?.message,
-      stack: error?.stack,
-      fullError: error
-    });
-    throw error;
-  }
-};
-
-/**
  * Confirms membership payment was successful
  * @param {string} sessionId - Stripe checkout session ID
  * @returns {Promise<{success: boolean, membership: Object}>}
@@ -171,18 +110,76 @@ const confirmMembershipPayment = async (sessionId) => {
  * Membership Payment Service Object
  * Contains all membership payment related methods
  */
-export const membershipPaymentService = {
+const membershipPaymentService = {
+  /**
+   * Create a Stripe Checkout Session for membership payment
+   * @param {Object} params - Payment parameters
+   * @param {string} params.userId - User ID (optional for guest checkout)
+   * @param {string} params.priceId - Stripe Price ID for membership
+   * @param {string} params.email - User email
+   * @param {Object} params.metadata - Additional metadata (optional)
+   * @returns {Promise<{url: string}>} Checkout session URL
+   */
+  async createMembershipCheckout({ userId = null, priceId, email, metadata = {} }) {
+    try {
+      console.log('🚀 Starting Stripe Checkout session creation');
+      console.log('📞 Calling create-membership-payment edge function:', {
+        userId,
+        priceId,
+        email,
+        hasMetadata: Object.keys(metadata)?.length > 0
+      });
+
+      const { data, error } = await supabase?.functions?.invoke('create-membership-payment', {
+        body: { 
+          userId, 
+          priceId, 
+          email,
+          metadata 
+        }
+      });
+
+      if (error) {
+        console.error('❌ Edge function error:', error);
+        
+        // Provide user-friendly error messages
+        let errorMessage = 'Failed to create checkout session. Please try again.';
+        
+        if (error?.message?.includes('Stripe is not configured')) {
+          errorMessage = 'Payment system is not configured. Please contact support.';
+        } else if (error?.message?.includes('price ID')) {
+          errorMessage = 'Invalid payment configuration. Please contact support.';
+        } else if (error?.message?.includes('authentication')) {
+          errorMessage = 'Payment authentication failed. Please contact support.';
+        } else if (error?.message) {
+          errorMessage = error?.message;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      if (!data?.url) {
+        console.error('❌ No checkout URL returned from edge function');
+        throw new Error('Failed to create checkout session. Please try again.');
+      }
+
+      console.log('✅ Checkout session created successfully');
+      return data;
+      
+    } catch (error) {
+      console.error('❌ Error creating checkout session:', error);
+      
+      // Re-throw with user-friendly message
+      throw new Error(
+        error.message || 'Unable to create checkout session. Please check your internet connection and try again.'
+      );
+    }
+  },
+
   getMembershipFee,
   formatAmount,
   createMembershipPaymentIntent,
-  createMembershipCheckout,
   confirmMembershipPayment
 };
 
-export {
-  createMembershipCheckout,
-  confirmMembershipPayment,
-  getMembershipFee,
-  formatAmount,
-  createMembershipPaymentIntent
-};
+export { membershipPaymentService };

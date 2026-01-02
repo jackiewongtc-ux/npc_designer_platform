@@ -11,7 +11,8 @@ import MembershipTierCard from './components/MembershipTierCard';
 import PasswordStrengthIndicator from './components/PasswordStrengthIndicator';
 import CommunityBenefitsPanel from './components/CommunityBenefitsPanel';
 import RegistrationSteps from './components/RegistrationSteps';
-import PaymentForm from './components/PaymentForm';
+import Icon from '../../components/AppIcon';
+
 
 
 const Register = () => {
@@ -145,69 +146,52 @@ const Register = () => {
     setErrors({});
 
     try {
-      console.log('🚀 Registration flow started');
+      console.log('🚀 Starting Stripe Checkout session creation');
 
-      // Step 1: Create user account
-      console.log('📝 Step 1: Creating user account for:', formData?.email);
-      const { data: authData, error: signUpError } = await signUp(
-        formData?.email,
-        formData?.password,
-        formData?.username,
-        '' // bio
-      );
-
-      if (signUpError) {
-        console.error('❌ Sign up failed:', signUpError);
-        throw new Error(signUpError?.message || 'Failed to create account');
-      }
-
-      console.log('✅ User account created successfully:', {
-        userId: authData?.user?.id,
-        email: authData?.user?.email
-      });
-
-      // Step 2: Create Stripe checkout session for membership
+      // NEW FLOW: Create checkout session FIRST without user account
       const selectedTier = formData?.selectedTier || membershipTiers?.[0];
       
-      console.log('💳 Step 2: Creating Stripe checkout session with:', {
-        userId: authData?.user?.id,
+      console.log('💳 Creating Stripe checkout session with temporary data:', {
         priceId: selectedTier?.stripePriceId,
         email: formData?.email,
-        tierName: selectedTier?.name,
-        tierPrice: selectedTier?.price
+        username: formData?.username
       });
 
+      // Store registration data in sessionStorage for after payment
+      sessionStorage.setItem('pendingRegistration', JSON.stringify({
+        email: formData?.email,
+        password: formData?.password,
+        username: formData?.username,
+        socialMedia: formData?.socialMedia
+      }));
+
+      // Create checkout session WITHOUT userId (guest checkout)
       const checkoutData = await membershipPaymentService?.createMembershipCheckout({
-        userId: authData?.user?.id,
         priceId: selectedTier?.stripePriceId,
-        email: formData?.email
+        email: formData?.email,
+        metadata: {
+          username: formData?.username,
+          registrationFlow: 'true'
+        }
       });
 
-      // CRITICAL DEBUG: Log the complete checkout response
-      console.log('🔍 DEBUG: Checkout session response:', {
-        checkoutData,
+      console.log('🔍 Checkout session created:', {
         hasUrl: !!checkoutData?.url,
-        url: checkoutData?.url,
-        fullResponse: checkoutData
+        url: checkoutData?.url
       });
 
-      // Step 3: Redirect to Stripe checkout
+      // Redirect to Stripe Checkout immediately
       if (checkoutData?.url) {
-        console.log('✅ Redirecting to Stripe checkout:', checkoutData?.url);
+        console.log('✅ Redirecting to Stripe Checkout');
         window.location.href = checkoutData?.url;
       } else {
-        console.error('❌ No checkout URL received. Full response:', checkoutData);
         throw new Error('Failed to create checkout session - no URL returned');
       }
 
     } catch (error) {
-      console.error('❌ Registration error occurred:', {
-        message: error?.message,
-        stack: error?.stack,
-        fullError: error
-      });
+      console.error('❌ Checkout creation error:', error);
       setErrors({ 
-        submit: error?.message || 'Registration failed. Please try again.' 
+        submit: error?.message || 'Failed to start checkout. Please try again.' 
       });
       setIsLoading(false);
     }
@@ -225,13 +209,6 @@ const Register = () => {
     if (errors?.tier) {
       setErrors((prev) => ({ ...prev, tier: '' }));
     }
-  };
-
-  const handlePaymentDataChange = (data) => {
-    setFormData((prev) => ({
-      ...prev,
-      paymentData: { ...prev?.paymentData, ...data }
-    }));
   };
 
   return (
@@ -255,7 +232,7 @@ const Register = () => {
                   <RegistrationSteps currentStep={currentStep} />
                 </div>
 
-                {currentStep === 1 &&
+                {currentStep === 1 && (
                 <div className="space-y-6">
                     <div>
                       <h2 className="text-xl font-semibold text-foreground mb-4">
@@ -353,7 +330,7 @@ const Register = () => {
                       </div>
                     </div>
                   </div>
-                }
+                )}
 
                 {currentStep === 2 && (
                   <div className="space-y-6">
@@ -401,67 +378,117 @@ const Register = () => {
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-xl font-semibold text-foreground mb-4">
-                        Payment Information
+                        Complete Your Registration
                       </h2>
                       <p className="text-sm text-muted-foreground mb-6">
-                        Complete your registration with secure payment
+                        Review your details and proceed to secure payment
                       </p>
                     </div>
 
-                    {formData?.selectedTier && (
-                      <div className="p-4 bg-muted/50 border border-border rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="text-sm font-semibold text-foreground">
-                              {formData?.selectedTier?.name}
-                            </h3>
-                            <p className="text-xs text-muted-foreground">
-                              Billed annually • Auto-renews • Cancel anytime
-                            </p>
+                    {/* Registration Summary */}
+                    <div className="space-y-4">
+                      {/* Account Details */}
+                      <div className="p-4 bg-muted/30 border border-border rounded-lg">
+                        <h3 className="text-sm font-semibold text-foreground mb-3">
+                          Account Details
+                        </h3>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Username:</span>
+                            <span className="font-medium text-foreground">{formData?.username}</span>
                           </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-foreground">
-                              SGD {formData?.selectedTier?.price?.toFixed(2)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">per year</p>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Email:</span>
+                            <span className="font-medium text-foreground">{formData?.email}</span>
                           </div>
                         </div>
                       </div>
-                    )}
 
-                    <PaymentForm onPaymentDataChange={handlePaymentDataChange} />
+                      {/* Membership Summary */}
+                      {formData?.selectedTier && (
+                        <div className="p-4 bg-accent/10 border border-accent/20 rounded-lg">
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-sm font-semibold text-foreground">
+                              {formData?.selectedTier?.name}
+                            </h3>
+                            <span className="px-2 py-1 bg-accent/20 text-accent text-xs font-semibold rounded">
+                              SELECTED
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                Billed annually • Auto-renews • Cancel anytime
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xl font-bold text-foreground">
+                                SGD {formData?.selectedTier?.price?.toFixed(2)}
+                              </p>
+                              <p className="text-xs text-muted-foreground">per year</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
+                      {/* Payment Process Info */}
+                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-start space-x-3">
+                          <Icon name="Info" className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium text-blue-900">
+                              What happens next?
+                            </p>
+                            <ul className="text-sm text-blue-800 space-y-1">
+                              <li>1. You'll be redirected to Stripe secure checkout</li>
+                              <li>2. Complete your payment with card details</li>
+                              <li>3. Your account will be created automatically</li>
+                              <li>4. You'll be redirected to your dashboard</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Terms Checkboxes */}
                     <div className="space-y-3 pt-4 border-t border-border">
                       <Checkbox
-                      label={
-                      <span className="text-sm">
+                        label={
+                          <span className="text-sm">
                             I agree to the{' '}
                             <Link to="/terms" className="text-accent hover:underline">
                               Terms of Service
                             </Link>
                           </span>
-                      }
-                      checked={formData?.agreeToTerms}
-                      onChange={(e) => {
-                        handleInputChange('agreeToTerms', e?.target?.checked);
-                      }}
-                      error={errors?.terms} />
+                        }
+                        checked={formData?.agreeToTerms}
+                        onChange={(e) => {
+                          handleInputChange('agreeToTerms', e?.target?.checked);
+                        }}
+                        error={errors?.terms}
+                      />
 
                       <Checkbox
-                      label={
-                      <span className="text-sm">
+                        label={
+                          <span className="text-sm">
                             I agree to the{' '}
                             <Link to="/privacy" className="text-accent hover:underline">
                               Privacy Policy
                             </Link>
                           </span>
-                      }
-                      checked={formData?.agreeToPrivacy}
-                      onChange={(e) => {
-                        handleInputChange('agreeToPrivacy', e?.target?.checked);
-                      }}
-                      error={errors?.privacy} />
+                        }
+                        checked={formData?.agreeToPrivacy}
+                        onChange={(e) => {
+                          handleInputChange('agreeToPrivacy', e?.target?.checked);
+                        }}
+                        error={errors?.privacy}
+                      />
+                    </div>
 
+                    {/* Security Badge */}
+                    <div className="flex items-center justify-center space-x-2 text-xs text-muted-foreground pt-2">
+                      <Icon name="Shield" size={16} />
+                      <span>Secured by Stripe • Your payment information is encrypted</span>
                     </div>
                   </div>
                 )}
@@ -492,11 +519,11 @@ const Register = () => {
                     variant="default"
                     onClick={handleNext}
                     loading={isLoading}
-                    iconName={currentStep === 3 ? 'Check' : 'ChevronRight'}
+                    iconName={currentStep === 3 ? 'CreditCard' : 'ChevronRight'}
                     iconPosition="right"
                   >
                     {currentStep === 3 ? 
-                      (isLoading ? 'Creating Account...' : 'Complete Registration') : 
+                      (isLoading ? 'Redirecting to Checkout...' : 'Proceed to Payment') : 
                       'Continue'
                     }
                   </Button>
