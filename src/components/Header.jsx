@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Settings, LayoutDashboard, ChevronDown, ShieldCheck, Paintbrush } from 'lucide-react';
+import Icon from './AppIcon';
+import Button from './ui/Button';
 
-export default function Header() {
+const Header = () => {
   const { user, profile, signOut } = useAuth();
-  const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -20,130 +22,138 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = async () => {
+  // Close dropdown on route change
+  useEffect(() => {
     setIsDropdownOpen(false);
+  }, [location]);
+
+  const handleSignOut = async () => {
     await signOut();
     navigate('/login');
   };
 
+  // Role Checks based on the profile data object
   const isAdmin = profile?.role === 'admin';
   const isDesigner = profile?.role === 'designer';
 
   return (
-    <header className="bg-black/40 backdrop-blur-md border-b border-purple-500/30 sticky top-0 z-50 h-16 w-full">
-      <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between relative">
-        
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <img 
-            src="/assets/images/logos_-_Copy-1765345915130.png" 
-            alt="NPC Designer Logo" 
-            className="h-10 w-auto object-contain"
-          />
-        </Link>
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          
+          {/* Logo Section */}
+          <div className="flex items-center gap-8">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
+                <Icon name="Zap" size={20} color="white" />
+              </div>
+              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                NPC Designer
+              </span>
+            </Link>
 
-        {/* Main Navigation */}
-        <nav className="absolute left-1/2 transform -translate-x-1/2 hidden md:flex items-center gap-8">
-          <Link to="/discover" className="text-white hover:text-purple-400 transition-colors font-medium">Discover</Link>
-          <Link to="/community-challenge-board" className="text-white hover:text-purple-400 transition-colors font-medium">Community</Link>
-          <Link to="/blog" className="text-white hover:text-purple-400 transition-colors font-medium">Blog</Link>
-        </nav>
+            {/* Main Navigation */}
+            <nav className="hidden md:flex items-center gap-6">
+              <Link to="/challenges" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                Challenges
+              </Link>
+              <Link to="/discover" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                Discover
+              </Link>
+            </nav>
+          </div>
 
-        {/* Right Side: Auth/Profile */}
-        <div className="flex items-center gap-4">
-          {user ? (
-            <div className="relative" ref={dropdownRef}>
-              <button 
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-2 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 px-3 py-2 rounded-xl transition-all text-white"
-              >
-                <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center text-[10px] font-bold">
-                  {user.email?.substring(0, 2).toUpperCase()}
-                </div>
-                <span className="text-sm font-medium hidden sm:block">Account</span>
-                <ChevronDown size={14} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-slate-900 border border-purple-500/30 rounded-2xl shadow-2xl overflow-hidden py-2">
-                  <div className="px-4 py-3 border-b border-white/5 mb-1">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Account</p>
-                    <p className="text-sm text-slate-200 truncate font-medium">{user.email}</p>
+          {/* User Section */}
+          <div className="flex items-center gap-4">
+            {user ? (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center gap-2 p-1 rounded-full hover:bg-muted transition-colors border border-transparent hover:border-border"
+                >
+                  <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+                    {profile?.full_name?.charAt(0) || user.email?.charAt(0).toUpperCase()}
                   </div>
+                  <Icon name="ChevronDown" size={16} className={`text-muted-foreground transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
 
-                  {/* Standard Member Links */}
-                  <Link 
-                    to="/member-hub-dashboard" 
-                    onClick={() => setIsDropdownOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm text-slate-200 hover:bg-purple-500/10 hover:text-purple-400 transition-colors"
-                  >
-                    <LayoutDashboard size={18} className="text-purple-500" />
-                    Member Dashboard
-                  </Link>
-
-                  <Link 
-                    to="/profile-completion" 
-                    onClick={() => setIsDropdownOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-sm text-slate-200 hover:bg-purple-500/10 hover:text-purple-400 transition-colors"
-                  >
-                    <Settings size={18} className="text-purple-500" />
-                    Account Settings
-                  </Link>
-
-                  {/* DESIGNER SECTION */}
-                  {isDesigner && (
-                    <div className="border-t border-white/5 mt-1 pt-1">
-                      <div className="px-4 py-2">
-                        <p className="text-[10px] uppercase tracking-wider text-cyan-500 font-bold">Designer Console</p>
-                      </div>
-                      <Link 
-                        to="/designer-hub-dashboard" 
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-slate-200 hover:bg-cyan-500/10 hover:text-cyan-400 transition-colors"
-                      >
-                        <Paintbrush size={18} className="text-cyan-500" />
-                        Designer Dashboard
-                      </Link>
+                {/* Dropdown Menu */}
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-xl border border-border bg-card shadow-lg py-2 animate-in fade-in zoom-in duration-200">
+                    <div className="px-4 py-2 border-b border-border mb-2">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {profile?.full_name || 'User'}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {user.email}
+                      </p>
                     </div>
-                  )}
 
-                  {/* ADMIN SECTION */}
-                  {isAdmin && (
-                    <div className="border-t border-white/5 mt-1 pt-1">
-                      <div className="px-4 py-2">
-                        <p className="text-[10px] uppercase tracking-wider text-red-500 font-bold">Admin Console</p>
-                      </div>
+                    {/* Role-Based Dashboard Links */}
+                    {isAdmin && (
                       <Link 
-                        to="/admin-challenge-management" 
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-slate-200 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+                        to="/admin-challenge-management"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
                       >
-                        <ShieldCheck size={18} className="text-red-500" />
-                        Challenge Management
+                        <Icon name="Shield" size={18} />
+                        Admin Panel
                       </Link>
-                    </div>
-                  )}
+                    )}
 
-                  <div className="border-t border-white/5 mt-1 pt-1">
-                    <button 
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-400 hover:bg-white/5 transition-colors font-medium"
+                    {isDesigner && (
+                      <Link 
+                        to="/designer-hub-dashboard"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-cyan-400 hover:bg-cyan-500/10 transition-colors"
+                      >
+                        <Icon name="LayoutDashboard" size={18} />
+                        Designer Console
+                      </Link>
+                    )}
+
+                    <Link 
+                      to="/member-hub-dashboard"
+                      className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
                     >
-                      <LogOut size={18} />
-                      Logout
+                      <Icon name="User" size={18} />
+                      Member Hub
+                    </Link>
+
+                    {/* ACCOUNT SETTINGS LINK - Corrected to use profile-completion */}
+                    <Link 
+                      to="/profile-completion"
+                      className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                    >
+                      <Icon name="Settings" size={18} className="text-accent" />
+                      Account Settings
+                    </Link>
+
+                    <div className="h-px bg-border my-2" />
+
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+                    >
+                      <Icon name="LogOut" size={18} />
+                      Sign Out
                     </button>
                   </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex items-center gap-4">
-              <Link to="/login" className="text-white hover:text-purple-400 transition-colors font-medium">Login</Link>
-              <Link to="/register" className="bg-purple-600 text-white px-5 py-2 rounded-xl hover:bg-purple-700 transition-all font-bold">Sign Up</Link>
-            </div>
-          )}
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">Log In</Button>
+                </Link>
+                <Link to="/register">
+                  <Button variant="primary" size="sm">Join Community</Button>
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>
   );
-}
+};
+
+export default Header;

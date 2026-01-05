@@ -10,32 +10,41 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
-  // Pulling global auth state to sync the Header and redirects
+  // Destructuring loading to ensure we wait for the AuthContext to finish its check
   const { user, profile, loading } = useAuth();
 
   useEffect(() => {
-    // If a user is already logged in and profile data is loaded, 
-    // redirect them away from the login page immediately.
+    // REDIRECT LOGIC: Only run when NOT loading and data is present
     if (!loading && user && profile) {
+      // 1. Check for Admin
       if (profile.role === 'admin') {
         navigate('/admin-challenge-management');
+        return;
+      }
+
+      // 2. Check for Designer
+      if (profile.role === 'designer') {
+        navigate('/designer-hub-dashboard');
+        return;
+      }
+
+      // 3. Check for Regular Member / Onboarding
+      const hasIg = profile.ig_handle || profile.igHandle;
+      if (!hasIg) {
+        navigate('/profile-completion');
       } else {
-        // Check for onboarding completion for regular members
-        const hasIg = profile.ig_handle || profile.igHandle;
-        if (!hasIg) {
-          navigate('/profile-completion');
-        } else {
-          navigate('/member-hub-dashboard');
-        }
+        navigate('/member-hub-dashboard');
       }
     }
   }, [user, profile, loading, navigate]);
 
+  // If loading the auth state, show a clean background to prevent "flickering" 
+  // or premature execution of child component logic
+  if (loading && !user) {
+    return <div className="min-h-screen bg-background animate-pulse" />;
+  }
+
   return (
-    /* Note: We no longer pass the 'user' prop to AuthenticationGuard. 
-       The Guard now pulls 'user' and 'profile' directly from useAuth() 
-       to prevent the "n is not a function" race condition.
-    */
     <AuthenticationGuard requireAuth={false}>
       <div className="min-h-screen bg-background">
         <main className="main-content">
