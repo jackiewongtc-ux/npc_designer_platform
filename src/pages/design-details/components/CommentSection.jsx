@@ -38,7 +38,7 @@ const CommentSection = ({ designId, initialComments = [] }) => {
       id: 3,
       user: {
         name: "Designer",
-        avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1908e3d35-1765222080801.png",
+        avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_10f1d4ead-1763298624788.png",
         avatarAlt: "Professional headshot of female designer with long brown hair wearing black turtleneck",
         tier: "Platinum"
       },
@@ -60,7 +60,7 @@ const CommentSection = ({ designId, initialComments = [] }) => {
       id: Date.now(),
       user: {
         name: "You",
-        avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1d4318d08-1764792568737.png",
+        avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_18cda2219-1766844033568.png",
         avatarAlt: "User profile picture",
         tier: "Bronze"
       },

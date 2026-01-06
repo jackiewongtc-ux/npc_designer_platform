@@ -17,19 +17,19 @@ const Login = () => {
     // REDIRECT LOGIC: Only run when NOT loading and data is present
     if (!loading && user && profile) {
       // 1. Check for Admin
-      if (profile.role === 'admin') {
+      if (profile?.role === 'admin') {
         navigate('/admin-challenge-management');
         return;
       }
 
       // 2. Check for Designer
-      if (profile.role === 'designer') {
+      if (profile?.role === 'designer') {
         navigate('/designer-hub-dashboard');
         return;
       }
 
       // 3. Check for Regular Member / Onboarding
-      const hasIg = profile.ig_handle || profile.igHandle;
+      const hasIg = profile?.ig_handle || profile?.igHandle;
       if (!hasIg) {
         navigate('/profile-completion');
       } else {
@@ -144,12 +144,12 @@ const Login = () => {
                   { icon: 'Shield', title: 'IP Protection', color: 'var(--color-success)' },
                   { icon: 'DollarSign', title: 'Fair Revenue', color: 'var(--color-accent)' },
                   { icon: 'Globe', title: 'Global Reach', color: 'var(--color-primary)' }
-                ].map((feature, index) => (
+                ]?.map((feature, index) => (
                   <div key={index} className="p-6 rounded-xl bg-card border border-border">
                     <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-4">
-                      <Icon name={feature.icon} size={24} color={feature.color} />
+                      <Icon name={feature?.icon} size={24} color={feature?.color} />
                     </div>
-                    <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
+                    <h3 className="font-semibold text-foreground mb-2">{feature?.title}</h3>
                     <p className="text-sm text-muted-foreground">Professional designer tools and community support.</p>
                   </div>
                 ))}
@@ -161,7 +161,7 @@ const Login = () => {
         <footer className="border-t border-border bg-card mt-16">
           <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} NPC Designer Platform.
+              © {new Date()?.getFullYear()} NPC Designer Platform.
             </div>
             <div className="flex gap-6">
               <Link to="/terms" className="text-sm text-muted-foreground hover:text-accent transition-colors">Terms</Link>

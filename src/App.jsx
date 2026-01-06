@@ -1,19 +1,24 @@
 import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { StripeProvider } from './contexts/StripeContext';
+import ErrorBoundary from './components/ErrorBoundary';
+import ScrollToTop from './components/ScrollToTop';
 import AppRoutes from './Routes';
 
-function App() {
+const App = () => {
   return (
-    // 1. Router MUST be the outermost wrapper
-    <Router>
-      {/* 2. AuthProvider MUST be inside the Router */}
-      <AuthProvider>
-        {/* 3. AppRoutes MUST be inside both */}
-        <AppRoutes />
-      </AuthProvider>
-    </Router>
+    <BrowserRouter>
+      <ErrorBoundary>
+        <AuthProvider>
+          <StripeProvider>
+            <ScrollToTop />
+            <AppRoutes />
+          </StripeProvider>
+        </AuthProvider>
+      </ErrorBoundary>
+    </BrowserRouter>
   );
-}
+};
 
 export default App;

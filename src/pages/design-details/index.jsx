@@ -22,7 +22,7 @@ const DesignDetails = () => {
   const [searchParams] = useSearchParams();
   const { id: pathId } = useParams();
   const navigate = useNavigate();
-  
+
   // FIX: Support both query params (?id=...) and path params (/:id)
   const designId = searchParams?.get('id') || pathId;
 
@@ -79,12 +79,12 @@ const DesignDetails = () => {
       setLoading(true);
       setError('');
       const data = await designService?.getSubmission(designId);
-      
+
       if (!data) {
         setError('Design not found. It may have been removed or the ID is incorrect.');
         return;
       }
-      
+
       setDesign({
         id: data?.id,
         title: data?.title,
@@ -105,25 +105,25 @@ const DesignDetails = () => {
           isFollowing: false
         },
         specifications: {
-          materials: data?.materials ? data?.materials?.split(',')?.map(m => m?.trim()) : [],
+          materials: data?.materials ? data?.materials?.split(',')?.map((m) => m?.trim()) : [],
           category: data?.category,
           productionType: "Made to Order",
           availableSizes: ["XS", "S", "M", "L", "XL", "XXL"],
           colors: ["Charcoal Gray", "Forest Green", "Navy Blue", "Black"],
           careInstructions: [
-            "Machine wash cold with like colors",
-            "Tumble dry low or hang to dry",
-            "Do not bleach",
-            "Iron on low heat if needed",
-            "Do not dry clean"
-          ]
+          "Machine wash cold with like colors",
+          "Tumble dry low or hang to dry",
+          "Do not bleach",
+          "Iron on low heat if needed",
+          "Do not dry clean"]
+
         },
         voting: {
           totalVotes: data?.votesCount || 0,
           userVote: null,
-          votingEndDate: data?.votingStartedAt ? 
-            new Date(new Date(data?.votingStartedAt).getTime() + 30 * 24 * 60 * 60 * 1000)?.toISOString() 
-            : null
+          votingEndDate: data?.votingStartedAt ?
+          new Date(new Date(data?.votingStartedAt).getTime() + 30 * 24 * 60 * 60 * 1000)?.toISOString() :
+          null
         },
         statistics: {
           views: 0,
@@ -167,15 +167,15 @@ const DesignDetails = () => {
           user={user}
           notifications={3}
           expProgress={expProgress}
-          currentTier={user?.tier}
-        />
+          currentTier={user?.tier} />
+
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex justify-center items-center h-64">
             <div className="text-muted-foreground">Loading design details...</div>
           </div>
         </main>
-      </div>
-    );
+      </div>);
+
   }
 
   if (error) {
@@ -185,8 +185,8 @@ const DesignDetails = () => {
           user={user}
           notifications={3}
           expProgress={expProgress}
-          currentTier={user?.tier}
-        />
+          currentTier={user?.tier} />
+
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-destructive/10 text-destructive px-6 py-4 rounded-md">
             <div className="flex items-center gap-2">
@@ -195,8 +195,8 @@ const DesignDetails = () => {
             </div>
           </div>
         </main>
-      </div>
-    );
+      </div>);
+
   }
 
   if (!design) {
@@ -206,15 +206,15 @@ const DesignDetails = () => {
           user={user}
           notifications={3}
           expProgress={expProgress}
-          currentTier={user?.tier}
-        />
+          currentTier={user?.tier} />
+
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-muted-foreground">
             Design not found
           </div>
         </main>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -284,20 +284,20 @@ const DesignDetails = () => {
           </div>
 
           <div className="lg:col-span-1 space-y-6">
-            <VotingInterface 
-              designId={designId} 
-              votingEndDate={design?.votingStartedAt ? 
-                new Date(new Date(design?.votingStartedAt).getTime() + 30 * 24 * 60 * 60 * 1000)?.toISOString() 
-                : null
-              }
-            />
+            <VotingInterface
+              designId={designId}
+              votingEndDate={design?.votingStartedAt ?
+              new Date(new Date(design?.votingStartedAt).getTime() + 30 * 24 * 60 * 60 * 1000)?.toISOString() :
+              null
+              } />
+
             
             <VotingHistory designId={designId} />
             
-            <PreOrderSection 
+            <PreOrderSection
               designId={designId}
-              designTitle={design?.title}
-            />
+              designTitle={design?.title} />
+
             
             <DesignStatistics statistics={design?.statistics} />
 
@@ -312,8 +312,8 @@ const DesignDetails = () => {
           </div>
         </div>
       </main>
-    </div>
-  );
+    </div>);
+
 };
 
 export default DesignDetails;

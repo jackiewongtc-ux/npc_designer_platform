@@ -31,7 +31,7 @@ const AdminChallengeManagement = () => {
     description: 'Design a sustainable streetwear collection that appeals to environmentally conscious urban youth aged 18-25. Focus on recycled materials and bold graphics.',
     category: 'Streetwear',
     budget: 5000,
-    thumbnail: "https://img.rocket.new/generatedImages/rocket_gen_img_11e02390c-1764835445076.png",
+    thumbnail: "https://img.rocket.new/generatedImages/rocket_gen_img_1d93de744-1765313383076.png",
     thumbnailAlt: 'Modern streetwear clothing display with sustainable fabrics and urban aesthetic on white background',
     creator: {
       name: 'Sarah Chen',
@@ -95,7 +95,7 @@ const AdminChallengeManagement = () => {
     description: 'Design a casual wear collection inspired by classic 8-bit and 16-bit video games with pixel art graphics and nostalgic color palettes.',
     category: 'Casual',
     budget: 4200,
-    thumbnail: "https://img.rocket.new/generatedImages/rocket_gen_img_171527518-1764723192907.png",
+    thumbnail: "https://img.rocket.new/generatedImages/rocket_gen_img_1233d3705-1765477912637.png",
     thumbnailAlt: 'Casual clothing with retro gaming graphics featuring pixel art designs and vibrant colors on display',
     creator: {
       name: 'Emily Watson',
@@ -129,7 +129,7 @@ const AdminChallengeManagement = () => {
     description: 'Develop athletic wear incorporating smart fabric technology that monitors body temperature and adjusts breathability for optimal performance.',
     category: 'Sportswear',
     budget: 7500,
-    thumbnail: "https://img.rocket.new/generatedImages/rocket_gen_img_1ebdf3208-1764674831085.png",
+    thumbnail: "https://img.rocket.new/generatedImages/rocket_gen_img_14fe00efb-1765744545155.png",
     thumbnailAlt: 'Modern athletic sportswear with technical fabric showing moisture-wicking properties on athletic model',
     creator: {
       name: 'David Kim',
@@ -160,7 +160,7 @@ const AdminChallengeManagement = () => {
     description: 'Create a bohemian-inspired accessories line perfect for music festivals, featuring handcrafted elements and sustainable materials.',
     category: 'Accessories',
     budget: 2800,
-    thumbnail: "https://img.rocket.new/generatedImages/rocket_gen_img_1fc22f3af-1764873478400.png",
+    thumbnail: "https://images.unsplash.com/photo-1695281567318-76d294b4fb49",
     thumbnailAlt: 'Bohemian style accessories including handmade jewelry and fabric items with natural materials on rustic background',
     creator: {
       name: 'Jessica Martinez',
@@ -191,7 +191,7 @@ const AdminChallengeManagement = () => {
     description: 'Design winter outerwear with integrated heating elements and USB charging capabilities for urban commuters in cold climates.',
     category: 'Streetwear',
     budget: 6200,
-    thumbnail: "https://img.rocket.new/generatedImages/rocket_gen_img_1a8db4ab1-1764738369924.png",
+    thumbnail: "https://images.unsplash.com/photo-1704286188716-ee9fe352b977",
     thumbnailAlt: 'Modern winter jacket with technical features and sleek design on mannequin against urban background',
     creator: {
       name: 'Alex Thompson',

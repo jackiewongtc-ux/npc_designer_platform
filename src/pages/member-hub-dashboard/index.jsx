@@ -24,7 +24,7 @@ const MemberHubDashboard = () => {
 
   // 1. SAFETY CHECK: Redirect to profile completion if Instagram is missing
   useEffect(() => {
-    if (!authLoading && user && profile && !profile.ig_handle) {
+    if (!authLoading && user && profile && !profile?.ig_handle) {
       console.log('Redirecting to profile completion: Missing IG Handle');
       navigate('/profile-completion');
     }
@@ -59,9 +59,9 @@ const MemberHubDashboard = () => {
 
         const registrationData = JSON.parse(pendingRegistration);
         const authData = await signUp(
-          registrationData.email,
-          registrationData.password,
-          registrationData.username,
+          registrationData?.email,
+          registrationData?.password,
+          registrationData?.username,
           ''
         );
 
@@ -70,7 +70,7 @@ const MemberHubDashboard = () => {
         if (isMounted) setAccountCreated(true);
         sessionStorage.removeItem('pendingRegistration');
       } catch (err) {
-        if (isMounted) setError(err.message);
+        if (isMounted) setError(err?.message);
       } finally {
         if (isMounted) {
           setAccountCreating(false);
@@ -100,7 +100,7 @@ const MemberHubDashboard = () => {
     if (!user?.id) return;
     try {
       setLoading(true);
-      const data = await getDashboardOverview(user.id);
+      const data = await getDashboardOverview(user?.id);
       setDashboardData(data);
     } catch (err) {
       setError(err?.message || 'Failed to load dashboard data');
@@ -159,7 +159,6 @@ const MemberHubDashboard = () => {
           </div>
         </div>
       </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Top Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -187,7 +186,7 @@ const MemberHubDashboard = () => {
               <h2 className="text-xl font-bold text-white mb-6">Recent Activity</h2>
               <div className="space-y-3">
                 {recentActivities?.length > 0 ? (
-                  recentActivities.map((activity) => <ActivityFeedItem key={activity.id} activity={activity} />)
+                  recentActivities?.map((activity) => <ActivityFeedItem key={activity?.id} activity={activity} />)
                 ) : (
                   <p className="text-center text-purple-300 py-8">No recent activity yet.</p>
                 )}

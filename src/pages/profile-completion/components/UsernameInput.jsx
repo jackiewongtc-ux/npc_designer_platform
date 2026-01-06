@@ -19,8 +19,8 @@ export function UsernameInput({ value, onChange, error, setError }) {
       try {
         const result = await profileService?.checkUsernameAvailability(value);
         setAvailable(result?.available);
-        if (result && !result.available) {
-          setError(result.message || 'Username is already taken');
+        if (result && !result?.available) {
+          setError(result?.message || 'Username is already taken');
         } else {
           setError('');
         }

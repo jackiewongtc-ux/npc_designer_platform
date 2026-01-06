@@ -27,7 +27,7 @@ const PlatformShowcase = () => {
 
 
   const featuredDesign = {
-    image: "https://img.rocket.new/generatedImages/rocket_gen_img_1ecf066a9-1764655136077.png",
+    image: "https://images.unsplash.com/photo-1710504971937-18b917eaf684",
     imageAlt: 'Modern minimalist white t-shirt with geometric black pattern design displayed on mannequin against clean studio background',
     designer: 'Sarah Chen',
     designerAvatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1d92ac120-1763293804988.png",

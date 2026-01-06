@@ -47,7 +47,7 @@ const Home = () => {
               Create. Vote. Produce.
             </h1>
             <p className="text-xl lg:text-2xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Join the community-driven platform where designers create custom NPC miniatures and community votes decide what gets produced.
+              You weren’t meant to blend in. Start making a difference today.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button

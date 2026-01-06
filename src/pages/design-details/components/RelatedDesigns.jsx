@@ -18,7 +18,7 @@ const RelatedDesigns = ({ currentDesignId, category = "Apparel" }) => {
   {
     id: 3,
     title: "Minimalist Tote Bag",
-    image: "https://images.unsplash.com/photo-1535981444082-2a5dc0548ef3",
+    image: "https://img.rocket.new/generatedImages/rocket_gen_img_12e3fa5ba-1765572948306.png",
     imageAlt: "Beige minimalist canvas tote bag with leather handles on wooden surface",
     designer: "Emma Watson",
     votes: 289,
@@ -38,7 +38,7 @@ const RelatedDesigns = ({ currentDesignId, category = "Apparel" }) => {
   {
     id: 5,
     title: "Vintage Denim Jacket",
-    image: "https://img.rocket.new/generatedImages/rocket_gen_img_13c03f70c-1764925788199.png",
+    image: "https://images.unsplash.com/photo-1721218784730-642cad714ee5",
     imageAlt: "Classic blue vintage denim jacket with distressed details hanging on wooden hanger",
     designer: "Sofia Martinez",
     votes: 378,

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Header from './components/Header';
+import AuthenticationGuard from './components/AuthenticationGuard';
 
 // 1. Import Public Pages
 import Home from './pages/home/index';
@@ -48,7 +49,7 @@ export default function AppRoutes() {
       <Route path="/profile-completion" element={<ProfileCompletion />} />
 
       {/* --- PROTECTED/APP ROUTES (With Header) --- */}
-      <Route element={<AppLayout />}>
+      <Route element={<AuthenticationGuard requireAuth={true}><AppLayout /></AuthenticationGuard>}>
         {/* General */}
         <Route path="/blog" element={<Blog />} />
         <Route path="/discover" element={<Discover />} />

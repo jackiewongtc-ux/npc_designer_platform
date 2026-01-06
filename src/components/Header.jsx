@@ -14,7 +14,7 @@ const Header = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (dropdownRef?.current && !dropdownRef?.current?.contains(event?.target)) {
         setIsDropdownOpen(false);
       }
     };
@@ -22,17 +22,22 @@ const Header = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Close dropdown on route change
   useEffect(() => {
     setIsDropdownOpen(false);
   }, [location]);
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
+    try {
+      setIsDropdownOpen(false);
+      await signOut();
+      // Use replace: true to prevent user from going back to protected pages
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error("Sign out failed:", error);
+      navigate('/login');
+    }
   };
 
-  // Role Checks based on the profile data object
   const isAdmin = profile?.role === 'admin';
   const isDesigner = profile?.role === 'designer';
 
@@ -41,7 +46,6 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           
-          {/* Logo Section */}
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
@@ -52,18 +56,16 @@ const Header = () => {
               </span>
             </Link>
 
-            {/* Main Navigation */}
             <nav className="hidden md:flex items-center gap-6">
-              <Link to="/challenges" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/challenges" className="text-sm font-medium text-muted-foreground hover:text-foreground">
                 Challenges
               </Link>
-              <Link to="/discover" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/discover" className="text-sm font-medium text-muted-foreground hover:text-foreground">
                 Discover
               </Link>
             </nav>
           </div>
 
-          {/* User Section */}
           <div className="flex items-center gap-4">
             {user ? (
               <div className="relative" ref={dropdownRef}>
@@ -71,58 +73,53 @@ const Header = () => {
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center gap-2 p-1 rounded-full hover:bg-muted transition-colors border border-transparent hover:border-border"
                 >
-                  <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent">
-                    {profile?.full_name?.charAt(0) || user.email?.charAt(0).toUpperCase()}
+                  <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
+                    {profile?.full_name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
                   </div>
                   <Icon name="ChevronDown" size={16} className={`text-muted-foreground transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
-                {/* Dropdown Menu */}
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-xl border border-border bg-card shadow-lg py-2 animate-in fade-in zoom-in duration-200">
+                  <div className="absolute right-0 mt-2 w-64 rounded-xl border border-border bg-card shadow-lg py-2 animate-in fade-in zoom-in duration-200">
                     <div className="px-4 py-2 border-b border-border mb-2">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {profile?.full_name || 'User'}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {user.email}
-                      </p>
+                      <p className="text-sm font-medium text-foreground truncate">{profile?.full_name || 'User'}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                     </div>
 
-                    {/* Role-Based Dashboard Links */}
+                    {/* ADMIN SECTION */}
                     {isAdmin && (
-                      <Link 
-                        to="/admin-challenge-management"
-                        className="flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
-                      >
-                        <Icon name="Shield" size={18} />
-                        Admin Panel
-                      </Link>
+                      <div className="pb-2 mb-2 border-b border-border">
+                        <div className="px-4 py-1 text-[10px] font-bold text-red-500 uppercase tracking-wider">Admin Tools</div>
+                        <Link to="/admin-challenge-management" className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">
+                          <Icon name="Shield" size={18} className="text-red-500" />
+                          Challenge Management
+                        </Link>
+                        <Link to="/admin-challenge-moderation" className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">
+                          <Icon name="CheckSquare" size={18} className="text-orange-500" />
+                          Moderation
+                        </Link>
+                        <Link to="/admin-design-pricing-configuration" className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">
+                          <Icon name="DollarSign" size={18} className="text-emerald-500" />
+                          Pricing Config
+                        </Link>
+                      </div>
                     )}
 
+                    {/* DESIGNER SECTION */}
                     {isDesigner && (
-                      <Link 
-                        to="/designer-hub-dashboard"
-                        className="flex items-center gap-3 px-4 py-2 text-sm text-cyan-400 hover:bg-cyan-500/10 transition-colors"
-                      >
-                        <Icon name="LayoutDashboard" size={18} />
+                      <Link to="/designer-hub-dashboard" className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">
+                        <Icon name="LayoutDashboard" size={18} className="text-cyan-500" />
                         Designer Console
                       </Link>
                     )}
 
-                    <Link 
-                      to="/member-hub-dashboard"
-                      className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                    >
+                    {/* COMMON LINKS */}
+                    <Link to="/member-hub-dashboard" className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">
                       <Icon name="User" size={18} />
                       Member Hub
                     </Link>
 
-                    {/* ACCOUNT SETTINGS LINK - Corrected to use profile-completion */}
-                    <Link 
-                      to="/profile-completion"
-                      className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
-                    >
+                    <Link to="/profile-completion" className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors">
                       <Icon name="Settings" size={18} className="text-accent" />
                       Account Settings
                     </Link>
@@ -131,7 +128,7 @@ const Header = () => {
 
                     <button
                       onClick={handleSignOut}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors text-left"
                     >
                       <Icon name="LogOut" size={18} />
                       Sign Out
@@ -141,12 +138,8 @@ const Header = () => {
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <Link to="/login">
-                  <Button variant="ghost" size="sm">Log In</Button>
-                </Link>
-                <Link to="/register">
-                  <Button variant="primary" size="sm">Join Community</Button>
-                </Link>
+                <Link to="/login"><Button variant="ghost" size="sm">Log In</Button></Link>
+                <Link to="/register"><Button variant="primary" size="sm">Join</Button></Link>
               </div>
             )}
           </div>
