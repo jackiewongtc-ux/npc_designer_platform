@@ -10,14 +10,12 @@ const ProfileCompletion = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
-  // Local state mapped to your exact Supabase columns
   const [formData, setFormData] = useState({
     username: '', 
     ig_handle: '',
     bio: ''
   });
 
-  // Prefill the form if data already exists in user_profiles
   useEffect(() => {
     if (profile) {
       setFormData({
@@ -36,8 +34,6 @@ const ProfileCompletion = () => {
     setError(null);
 
     try {
-      // 1. UPDATE DATABASE
-      // We include email to satisfy the 'not-null' constraint in your schema
       const { error: upsertError } = await supabase
         .from('user_profiles')
         .upsert({
@@ -53,16 +49,10 @@ const ProfileCompletion = () => {
 
       if (upsertError) throw upsertError;
 
-      // 2. TRIGGER STATE REFRESH
-      // We fire this but don't 'await' it to prevent the UI from hanging
-      // if the network response is slower than the navigation.
       if (refreshProfile) {
         refreshProfile().catch(err => console.error("Profile refresh failed:", err));
       }
 
-      // 3. FORCE REDIRECT
-      // A small delay ensures the database write is finished before the 
-      // AuthenticationGuard checks the user's data again on the next page.
       setTimeout(() => {
         setLoading(false);
         navigate('/member-hub-dashboard');
@@ -76,10 +66,10 @@ const ProfileCompletion = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-card border border-border rounded-2xl p-8 shadow-lg">
-        <h1 className="text-2xl font-bold text-foreground mb-2 text-center">Complete Your Profile</h1>
-        <p className="text-muted-foreground text-sm text-center mb-8">
+    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-[#111111] border border-white/10 rounded-2xl p-8 shadow-2xl">
+        <h1 className="text-2xl font-bold text-white mb-2 text-center">Complete Your Profile</h1>
+        <p className="text-gray-400 text-sm text-center mb-8">
           Please provide these details to access your dashboard.
         </p>
         
@@ -92,10 +82,10 @@ const ProfileCompletion = () => {
         <form onSubmit={handleSave} className="space-y-5">
           {/* USERNAME FIELD */}
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-foreground">Display Name / Username</label>
+            <label className="block text-sm font-medium mb-1.5 text-gray-300">Display Name / Username</label>
             <input
               type="text"
-              className="w-full p-3 bg-background border border-border rounded-xl text-white outline-none focus:ring-2 focus:ring-accent transition-all"
+              className="w-full p-3 bg-slate-950 border border-white/10 rounded-xl text-white outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-gray-600"
               value={formData.username}
               onChange={(e) => setFormData({...formData, username: e.target.value})}
               required
@@ -105,12 +95,12 @@ const ProfileCompletion = () => {
 
           {/* INSTAGRAM FIELD */}
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-foreground">Instagram Handle</label>
+            <label className="block text-sm font-medium mb-1.5 text-gray-300">Instagram Handle</label>
             <div className="relative">
-              <span className="absolute left-3 top-3 text-muted-foreground">@</span>
+              <span className="absolute left-3 top-3 text-gray-500">@</span>
               <input
                 type="text"
-                className="w-full p-3 pl-8 bg-background border border-border rounded-xl text-white outline-none focus:ring-2 focus:ring-accent transition-all"
+                className="w-full p-3 pl-8 bg-slate-950 border border-white/10 rounded-xl text-white outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-gray-600"
                 value={formData.ig_handle}
                 onChange={(e) => setFormData({...formData, ig_handle: e.target.value})}
                 required
@@ -121,9 +111,9 @@ const ProfileCompletion = () => {
 
           {/* BIO FIELD */}
           <div>
-            <label className="block text-sm font-medium mb-1.5 text-foreground">Bio (Optional)</label>
+            <label className="block text-sm font-medium mb-1.5 text-gray-300">Bio (Optional)</label>
             <textarea
-              className="w-full p-3 bg-background border border-border rounded-xl text-white h-24 resize-none outline-none focus:ring-2 focus:ring-accent transition-all"
+              className="w-full p-3 bg-slate-950 border border-white/10 rounded-xl text-white h-24 resize-none outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-gray-600"
               value={formData.bio}
               onChange={(e) => setFormData({...formData, bio: e.target.value})}
               placeholder="Tell us a bit about yourself..."
@@ -136,7 +126,7 @@ const ProfileCompletion = () => {
               variant="primary" 
               fullWidth 
               disabled={loading}
-              className="py-3"
+              className="py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold"
             >
               {loading ? 'Saving Changes...' : 'Save and Enter Dashboard'}
             </Button>
@@ -146,6 +136,7 @@ const ProfileCompletion = () => {
               variant="outline" 
               fullWidth 
               onClick={() => navigate('/member-hub-dashboard')}
+              className="border-white/10 text-gray-400 hover:bg-white/5"
               disabled={loading}
             >
               Cancel

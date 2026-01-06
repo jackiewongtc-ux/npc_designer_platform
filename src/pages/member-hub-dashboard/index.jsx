@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-
 import { getDashboardOverview } from '../../services/gamificationService';
 
 import ActivityFeedItem from './components/ActivityFeedItem';
 import CreditBalanceCard from './components/CreditBalanceCard';
 import QuickActionsPanel from './components/QuickActionsPanel';
 import QuickStatsCard from './components/QuickStatsCard';
-
 
 const MemberHubDashboard = () => {
   const { user, profile, signUp, loading: authLoading } = useAuth();
@@ -23,6 +21,7 @@ const MemberHubDashboard = () => {
   const [accountCreated, setAccountCreated] = useState(false);
 
   // 1. SAFETY CHECK: Redirect to profile completion if Instagram is missing
+  // This ensures the member always has a profile record in 'user_profiles'
   useEffect(() => {
     if (!authLoading && user && profile && !profile?.ig_handle) {
       console.log('Redirecting to profile completion: Missing IG Handle');
@@ -83,7 +82,7 @@ const MemberHubDashboard = () => {
     return () => { isMounted = false; };
   }, [sessionId, user?.id, signUp, accountCreated, authLoading]);
 
-  // 4. THE FIX: Safer Redirect Logic
+  // 4. Safer Redirect Logic
   useEffect(() => {
     if (authLoading) return;
 
@@ -95,7 +94,7 @@ const MemberHubDashboard = () => {
     }
   }, [user?.id, accountCreating, sessionId, navigate, authLoading, accountCreated]);
 
-  // 5. Load data logic
+  // 5. Load gamification data logic
   const loadDashboardData = async () => {
     if (!user?.id) return;
     try {
@@ -153,12 +152,17 @@ const MemberHubDashboard = () => {
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">Member Command Center</h1>
               <p className="text-purple-300">
-                Welcome back, {user?.email?.split('@')?.[0] || 'Member'}! 🎮
+                {/* CRITICAL FIX: 
+                  We now prioritize profile.username (CreativeDesignerr1).
+                  If that is empty, we fall back to the email prefix.
+                */}
+                Welcome back, {profile?.username || user?.email?.split('@')?.[0] || 'Member'}! 🎮
               </p>
             </div>
           </div>
         </div>
       </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Top Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

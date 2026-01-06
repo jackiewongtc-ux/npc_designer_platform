@@ -8,36 +8,54 @@ export const AuthProvider = ({ children }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Core function to fetch data from the user_profiles table
   const fetchProfile = async (userId) => {
     try {
-      const { data, error } = await supabase?.from('user_profiles')?.select('*')?.eq('id', userId)?.single();
+      if (!userId) return null;
 
-      if (error) throw error;
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        // We log a warning instead of throwing an error 
+        // because new users won't have a profile yet.
+        console.warn("Profile fetch note:", error.message);
+        setProfile(null);
+        return null;
+      }
+
       setProfile(data);
       return data;
     } catch (e) {
-      console.error("Error fetching profile:", e?.message);
+      console.error("Critical Profile Error:", e.message);
       setProfile(null);
       return null;
     }
   };
 
-  // This is the key function to prevent getting "stuck"
+  // Force a re-fetch of the profile (used after Profile Completion)
   const refreshProfile = async () => {
-    if (user) {
-      return await fetchProfile(user?.id);
+    if (user?.id) {
+      return await fetchProfile(user.id);
     }
   };
 
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase?.auth?.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
         const currentUser = session?.user ?? null;
+        
         setUser(currentUser);
-        if (currentUser) await fetchProfile(currentUser?.id);
+        
+        if (currentUser) {
+          await fetchProfile(currentUser.id);
+        }
       } catch (e) {
-        console.error("Auth init failed", e);
+        console.error("Auth initialization failed:", e);
       } finally {
         setLoading(false);
       }
@@ -45,24 +63,34 @@ export const AuthProvider = ({ children }) => {
 
     initializeAuth();
 
-    const { data: { subscription } } = supabase?.auth?.onAuthStateChange(async (event, session) => {
+    // Listen for Auth changes (Sign In / Sign Out)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       const currentUser = session?.user ?? null;
+      
       setUser(currentUser);
+      
       if (currentUser) {
-        await fetchProfile(currentUser?.id);
+        await fetchProfile(currentUser.id);
       } else {
         setProfile(null);
       }
+      
       setLoading(false);
     });
 
-    return () => subscription?.unsubscribe();
+    return () => {
+      if (subscription) subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
-    await supabase?.auth?.signOut();
-    setUser(null);
-    setProfile(null);
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+    } catch (e) {
+      console.error("Sign out error:", e);
+    }
   };
 
   const value = { 
@@ -70,7 +98,7 @@ export const AuthProvider = ({ children }) => {
     profile, 
     loading, 
     signOut,
-    refreshProfile // Exporting this so the profile page can use it
+    refreshProfile
   };
 
   return (
