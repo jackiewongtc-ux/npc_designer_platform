@@ -142,7 +142,10 @@ Deno.serve(async (req) => {
           },
         ],
         mode: 'subscription',
-        success_url: `${req.headers.get('origin')}/member-hub-dashboard?session_id={CHECKOUT_SESSION_ID}`,
+        // Use membership-success page for new registrations, dashboard for existing users
+        success_url: userId && userId !== 'pending' 
+          ? `${req.headers.get('origin')}/member-hub-dashboard?session_id={CHECKOUT_SESSION_ID}`
+          : `${req.headers.get('origin')}/membership-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${req.headers.get('origin')}/register`,
         metadata: {
           userId: userId || 'pending',

@@ -9,7 +9,7 @@ import QuickActionsPanel from './components/QuickActionsPanel';
 import QuickStatsCard from './components/QuickStatsCard';
 
 const MemberHubDashboard = () => {
-  const { user, profile, signUp, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const sessionId = searchParams?.get('session_id');
@@ -17,11 +17,20 @@ const MemberHubDashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [accountCreating, setAccountCreating] = useState(false);
-  const [accountCreated, setAccountCreated] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
-  // 1. SAFETY CHECK: Redirect to profile completion if Instagram is missing
-  // This ensures the member always has a profile record in 'user_profiles'
+  // 1. Show welcome message if coming from successful payment
+  useEffect(() => {
+    if (sessionId && user?.id) {
+      setShowWelcome(true);
+      // Clear the session_id from URL after 3 seconds
+      setTimeout(() => {
+        navigate('/member-hub-dashboard', { replace: true });
+      }, 3000);
+    }
+  }, [sessionId, user?.id, navigate]);
+
+  // 2. Redirect to profile completion if Instagram is missing
   useEffect(() => {
     if (!authLoading && user && profile && !profile?.ig_handle) {
       console.log('Redirecting to profile completion: Missing IG Handle');
@@ -29,72 +38,17 @@ const MemberHubDashboard = () => {
     }
   }, [authLoading, user, profile, navigate]);
 
-  // 2. Initial check: clear loading states
+  // 3. Redirect to login if not authenticated
   useEffect(() => {
-    const pendingRegistration = sessionStorage.getItem('pendingRegistration');
-    if (user?.id) {
-      if (accountCreating) setAccountCreating(false);
-      if (!pendingRegistration && !sessionId) setLoading(false);
-    }
-  }, [user?.id, sessionId, accountCreating]);
-
-  // 3. Handle account creation after payment
-  useEffect(() => {
-    let isMounted = true;
-    const handlePostPaymentAccountCreation = async () => {
-      if (user?.id || !sessionId || accountCreated || authLoading) return;
-
-      const pendingRegistration = sessionStorage.getItem('pendingRegistration');
-      if (!pendingRegistration) {
-        if (isMounted) setLoading(false);
-        return;
-      }
-
-      try {
-        if (isMounted) {
-          setAccountCreating(true);
-          setLoading(true);
-        }
-
-        const registrationData = JSON.parse(pendingRegistration);
-        const authData = await signUp(
-          registrationData?.email,
-          registrationData?.password,
-          registrationData?.username,
-          ''
-        );
-
-        if (!authData?.user?.id) throw new Error('Failed to create user account');
-
-        if (isMounted) setAccountCreated(true);
-        sessionStorage.removeItem('pendingRegistration');
-      } catch (err) {
-        if (isMounted) setError(err?.message);
-      } finally {
-        if (isMounted) {
-          setAccountCreating(false);
-          setLoading(false);
-        }
-      }
-    };
-
-    handlePostPaymentAccountCreation();
-    return () => { isMounted = false; };
-  }, [sessionId, user?.id, signUp, accountCreated, authLoading]);
-
-  // 4. Safer Redirect Logic
-  useEffect(() => {
-    if (authLoading) return;
-
-    if (!user?.id && !accountCreating && !sessionId && !accountCreated) {
+    if (!authLoading && !user?.id) {
       const timer = setTimeout(() => {
         navigate('/login');
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [user?.id, accountCreating, sessionId, navigate, authLoading, accountCreated]);
+  }, [user?.id, navigate, authLoading]);
 
-  // 5. Load gamification data logic
+  // 4. Load gamification data
   const loadDashboardData = async () => {
     if (!user?.id) return;
     try {
@@ -114,7 +68,7 @@ const MemberHubDashboard = () => {
     }
   }, [user?.id, authLoading]);
 
-  const shouldShowLoading = (authLoading && !user?.id) || (accountCreating && !user?.id) || (loading && user?.id && !dashboardData);
+  const shouldShowLoading = authLoading || (loading && user?.id && !dashboardData);
 
   if (shouldShowLoading) {
     return (
@@ -145,6 +99,31 @@ const MemberHubDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Welcome Banner */}
+      {showWelcome && (
+        <div className="bg-green-900/50 border-b border-green-500/30 backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-2xl">🎉</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Welcome to NPC Designer!</h3>
+                  <p className="text-green-300 text-sm">Your membership has been activated successfully.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowWelcome(false)}
+                className="text-green-300 hover:text-white transition"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-black/30 backdrop-blur-sm border-b border-purple-500/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

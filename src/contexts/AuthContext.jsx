@@ -83,6 +83,49 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
+  const signUp = async (email, password, username, igHandle = '') => {
+    try {
+      console.log('🔐 Creating user account with Supabase Auth...');
+      
+      // Create auth user with Supabase
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username: username,
+            ig_handle: igHandle
+          }
+        }
+      });
+
+      if (authError) {
+        console.error('❌ Auth signup error:', authError);
+        throw authError;
+      }
+
+      if (!authData?.user) {
+        throw new Error('Failed to create user account');
+      }
+
+      console.log('✅ User account created:', authData.user.id);
+      
+      // Update local state
+      setUser(authData.user);
+      
+      // Wait a bit for the database trigger to create the profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Fetch the newly created profile
+      await fetchProfile(authData.user.id);
+      
+      return authData;
+    } catch (e) {
+      console.error("Sign up error:", e);
+      throw e;
+    }
+  };
+
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -97,6 +140,7 @@ export const AuthProvider = ({ children }) => {
     user, 
     profile, 
     loading, 
+    signUp,
     signOut,
     refreshProfile
   };

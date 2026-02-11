@@ -8,6 +8,7 @@ import Home from './pages/home/index';
 import Login from './pages/login/index';
 import Register from './pages/register/index';
 import PreorderSuccess from './pages/preorder-success/index';
+import MembershipSuccess from './pages/membership-success/index';
 import ProfileCompletion from './pages/profile-completion/index';
 import Blog from './pages/blog/index';
 
@@ -46,6 +47,7 @@ export default function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/preorder-success" element={<PreorderSuccess />} />
+      <Route path="/membership-success" element={<MembershipSuccess />} />
       <Route path="/profile-completion" element={<ProfileCompletion />} />
 
       {/* --- PROTECTED/APP ROUTES (With Header) --- */}
